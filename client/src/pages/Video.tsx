@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Video, Clapperboard, Film, Upload, PlayCircle, ArrowRight, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,15 +7,45 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
+interface ImageData {
+  base64: string;
+  mimeType: string;
+  file: File;
+}
+
 export default function VideoPage() {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState("");
   const [creationMode, setCreationMode] = useState("text-to-video");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadedImageData, setUploadedImageData] = useState<ImageData | null>(null);
   const [referenceImages, setReferenceImages] = useState<string[]>([]);
-  
-  const handleGenerate = () => {
+  const [referenceImagesData, setReferenceImagesData] = useState<ImageData[]>([]);
+  const [prompt, setPrompt] = useState("");
+  const [aspectRatio, setAspectRatio] = useState("16:9");
+  const [resolution, setResolution] = useState("720p");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleGenerate = async () => {
+    if (creationMode === "text-to-video" && !prompt.trim()) {
+      toast({ title: "Por favor, insira um prompt", variant: "destructive" });
+      return;
+    }
+
     if (creationMode === "image-to-video" && !uploadedImage) {
       toast({ title: "Por favor, faça upload de uma imagem", variant: "destructive" });
       return;
@@ -27,33 +57,77 @@ export default function VideoPage() {
     }
 
     setIsGenerating(true);
-    // Simulate video generation
-    setTimeout(() => {
-      setVideoUrl("https://assets.mixkit.co/videos/preview/mixkit-waves-in-the-water-1164-large.mp4");
-      setIsGenerating(false);
-      toast({ title: "Vídeo gerado com sucesso!" });
-    }, 3000);
-  };
+    try {
+      const payload: any = {
+        prompt,
+        mode: creationMode,
+        aspectRatio,
+        resolution,
+      };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setUploadedImage(url);
-      toast({ title: "Arquivo carregado com sucesso!" });
+      if (creationMode === "image-to-video" && uploadedImageData) {
+        payload.imageBase64 = uploadedImageData.base64;
+        payload.imageMimeType = uploadedImageData.mimeType;
+      } else if (creationMode === "reference-to-video" && referenceImagesData.length > 0) {
+        payload.referenceImages = referenceImagesData.map((img) => ({
+          base64: img.base64,
+          mimeType: img.mimeType,
+        }));
+      }
+
+      const response = await fetch("/api/video/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erro ao gerar vídeo");
+      }
+
+      const result = await response.json();
+      setVideoUrl(result.videoUrl);
+      toast({ title: "Vídeo gerado com sucesso!" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao gerar vídeo";
+      toast({ title: message, variant: "destructive" });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
-  const handleReferenceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const base64 = await fileToBase64(file);
+        const url = URL.createObjectURL(file);
+        setUploadedImage(url);
+        setUploadedImageData({ base64, mimeType: file.type, file });
+        toast({ title: "Arquivo carregado com sucesso!" });
+      } catch (error) {
+        toast({ title: "Erro ao carregar arquivo", variant: "destructive" });
+      }
+    }
+  };
+
+  const handleReferenceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (referenceImages.length >= 3) {
         toast({ title: "Máximo de 3 imagens permitidas", variant: "destructive" });
         return;
       }
-      const url = URL.createObjectURL(file);
-      setReferenceImages([...referenceImages, url]);
-      toast({ title: "Referência adicionada!" });
+      try {
+        const base64 = await fileToBase64(file);
+        const url = URL.createObjectURL(file);
+        setReferenceImages([...referenceImages, url]);
+        setReferenceImagesData([...referenceImagesData, { base64, mimeType: file.type, file }]);
+        toast({ title: "Referência adicionada!" });
+      } catch (error) {
+        toast({ title: "Erro ao carregar arquivo", variant: "destructive" });
+      }
     }
   };
 
@@ -61,6 +135,9 @@ export default function VideoPage() {
     const newImages = [...referenceImages];
     newImages.splice(index, 1);
     setReferenceImages(newImages);
+    const newData = [...referenceImagesData];
+    newData.splice(index, 1);
+    setReferenceImagesData(newData);
   };
 
   return (
@@ -107,6 +184,9 @@ export default function VideoPage() {
               
               {creationMode === "text-to-video" ? (
                 <Textarea 
+                  ref={textareaRef}
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
                   placeholder="Descreva o vídeo que você quer criar..." 
                   className="h-32 resize-none bg-[#1a1d24] border-[#2d3748] text-foreground rounded-lg focus:ring-indigo-500/50 placeholder:text-muted-foreground/50 p-4"
                 />
@@ -169,27 +249,25 @@ export default function VideoPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Formato</Label>
-                <Select defaultValue="16:9">
+                <Select value={aspectRatio} onValueChange={setAspectRatio}>
                   <SelectTrigger className="w-full bg-[#1a1d24] border-[#2d3748] text-foreground h-12 rounded-lg">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#1a1d24] border-[#2d3748] text-foreground">
                     <SelectItem value="16:9">Paisagem (16:9)</SelectItem>
                     <SelectItem value="9:16">Retrato (9:16)</SelectItem>
-                    <SelectItem value="1:1">Quadrado (1:1)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Resolução</Label>
-                <Select defaultValue="720p">
+                <Select value={resolution} onValueChange={setResolution}>
                   <SelectTrigger className="w-full bg-[#1a1d24] border-[#2d3748] text-foreground h-12 rounded-lg">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#1a1d24] border-[#2d3748] text-foreground">
                     <SelectItem value="720p">720p</SelectItem>
                     <SelectItem value="1080p">1080p</SelectItem>
-                    <SelectItem value="4k">4K (Pro)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
