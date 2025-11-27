@@ -3,9 +3,9 @@ import { BookOpen, Star, Users2, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-import reactCover from "@assets/generated_images/react_advanced_course_cover.png";
-import webDesignCover from "@assets/generated_images/web_design_modern_course_cover.png";
-import javascriptCover from "@assets/generated_images/javascript_zero_course_cover.png";
+import reactCover from "@assets/generated_images/react_advanced_with_speak_ai_brand.png";
+import webDesignCover from "@assets/generated_images/web_design_modern_with_speak_ai_brand.png";
+import javascriptCover from "@assets/generated_images/javascript_zero_with_speak_ai_brand.png";
 
 type Course = {
   id: string;
