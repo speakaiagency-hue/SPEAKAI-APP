@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Link } from "wouter";
-import { ArrowRight, MessageSquare, Type, Image as ImageIcon, Video, Sparkles } from "lucide-react";
+import { ArrowRight, MessageSquare, Type, Image as ImageIcon, Video, Sparkles, Copy, Check } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 // Import assets
 import chatImg from "@assets/generated_images/abstract_ai_chat_concept.png";
@@ -10,6 +12,49 @@ import imageImg from "@assets/generated_images/digital_art_generation_concept.pn
 import videoImg from "@assets/generated_images/video_production_concept.png";
 
 export default function Home() {
+  const { toast } = useToast();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const prompts = [
+    {
+      id: "1",
+      title: "Roteiro para Video Marketing",
+      prompt: "Você é um roteirista expert em vídeos de marketing. Crie um roteiro de 30 segundos para um produto de software que soluciona problemas de produtividade. Inclua: hook nos primeiros 3 segundos, problema, solução e call-to-action."
+    },
+    {
+      id: "2",
+      title: "Análise de Dados",
+      prompt: "Sou um analista de dados. Preciso de uma query SQL otimizada para extrair os top 10 produtos mais vendidos do último mês, agrupados por categoria, com suas respectivas taxas de crescimento em relação ao mês anterior."
+    },
+    {
+      id: "3",
+      title: "Copy para Email Marketing",
+      prompt: "Escreva uma copy de email para uma campanha de Black Friday. O produto é um curso online sobre fotografia profissional. Deve ter: subject line impactante, apresentação do desconto, benefícios do curso, urgência e CTA claro. Máximo 200 palavras."
+    },
+    {
+      id: "4",
+      title: "Brainstorm de Conteúdo",
+      prompt: "Me sugira 10 ideias criativas de conteúdo para um blog sobre inteligência artificial e produtividade. Cada ideia deve ter: título, tipo de conteúdo (artigo/vídeo/infográfico), público-alvo e palavra-chave principal."
+    },
+    {
+      id: "5",
+      title: "Descrição de Produto",
+      prompt: "Crie uma descrição detalhada e persuasiva para um produto de fone de ouvido wireless premium. Inclua: características técnicas, benefícios para o usuário, diferenciais da marca e uma chamada para ação. Máximo 150 palavras."
+    },
+    {
+      id: "6",
+      title: "Plano de Conteúdo Social",
+      prompt: "Desenvolva um plano de conteúdo para Instagram de um personal trainer. Sugestões de posts para a semana: segunda, quarta, sexta e domingo. Cada post deve incluir: tema, tipo de conteúdo, hashtags relevantes e horário sugerido."
+    },
+  ];
+
+  const handleCopy = (promptText: string, id: string) => {
+    navigator.clipboard.writeText(promptText);
+    setCopiedId(id);
+    toast({ title: "Prompt copiado!" });
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   const modules = [
     {
       title: "Chat IA",
@@ -100,6 +145,48 @@ export default function Home() {
             </a>
           </Link>
         ))}
+      </section>
+
+      {/* Prompts Library Section */}
+      <section className="space-y-6 mt-16 pt-12 border-t border-border/30">
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-heading font-bold">Biblioteca de Prompts</h2>
+          <p className="text-muted-foreground">Prompts prontos para você copiar e usar em qualquer ferramenta de IA</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {prompts.map((item) => (
+            <Card key={item.id} className="bg-[#1a1d24] border-[#2d3748] hover:border-primary/50 transition-all duration-300 flex flex-col">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg text-white">{item.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col">
+                <p className="text-sm text-gray-300 leading-relaxed flex-1 mb-4 line-clamp-4">
+                  {item.prompt}
+                </p>
+                <Button
+                  size="sm"
+                  onClick={() => handleCopy(item.prompt, item.id)}
+                  className={`w-full transition-all ${
+                    copiedId === item.id
+                      ? "bg-green-600 hover:bg-green-600"
+                      : "bg-indigo-600 hover:bg-indigo-700"
+                  }`}
+                >
+                  {copiedId === item.id ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" /> Copiado!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 mr-2" /> Copiar Prompt
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </section>
     </div>
   );
