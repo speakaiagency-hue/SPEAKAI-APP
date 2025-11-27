@@ -22,7 +22,7 @@ export default function Chat() {
     {
       id: "1",
       role: "assistant",
-      content: "Olá! Eu sou sua assistente de IA. Como posso ajudar você hoje?",
+      content: "Olá! Eu sou Speak AI, seu assistente de autoajuda compassivo e empático. Como posso ajudar você hoje?",
       timestamp: new Date(),
     },
   ]);
@@ -30,6 +30,7 @@ export default function Chat() {
   const [useContext, setUseContext] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const conversationIdRef = useRef(Date.now().toString());
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -52,28 +53,47 @@ export default function Chat() {
     setInput("");
     setIsTyping(true);
 
-    // Simulate AI delay and streaming
-    setTimeout(() => {
-      const aiMessageId = (Date.now() + 1).toString();
-      let fullResponse = "Entendi seu pedido. Aqui está uma resposta simulada que demonstra a capacidade de formatação markdown.\n\n";
-      
-      if (input.toLowerCase().includes("código") || input.toLowerCase().includes("code")) {
-        fullResponse += "```typescript\nfunction helloWorld() {\n  console.log('Hello AI!');\n}\n```\n\n";
+    try {
+      const history = messages
+        .filter((m) => m.role !== "assistant" || m.id !== "1")
+        .map((m) => ({
+          role: m.role === "user" ? "user" : "model",
+          parts: [{ text: m.content }],
+        }));
+
+      const response = await fetch("/api/chat/send-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId: conversationIdRef.current,
+          message: input,
+          history: useContext ? history : [],
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erro ao enviar mensagem");
       }
-      
-      fullResponse += "- Item 1\n- Item 2\n- Item 3\n\nEspero que isso ajude!";
+
+      const result = await response.json();
 
       setMessages((prev) => [
         ...prev,
         {
-          id: aiMessageId,
+          id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: fullResponse, // In a real app, we would stream this
+          content: result.text,
           timestamp: new Date(),
         },
       ]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao conectar com IA";
+      toast({ title: message, variant: "destructive" });
+      console.error("Chat error:", error);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleExport = () => {
