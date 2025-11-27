@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { useEffect } from "react";
 import { isAuthenticated } from "@/lib/auth";
 
@@ -8,13 +8,13 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const [, navigate] = useNavigate();
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      navigate("/login");
+      setLocation("/login");
     }
-  }, [navigate]);
+  }, [setLocation]);
 
   if (!isAuthenticated()) {
     return null;

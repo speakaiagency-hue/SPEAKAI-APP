@@ -1,6 +1,6 @@
 import { LogOut, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { getUser, clearAuth } from "@/lib/auth";
 import {
   DropdownMenu,
@@ -12,14 +12,14 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export function UserMenu() {
-  const [, navigate] = useNavigate();
+  const [, setLocation] = useLocation();
   const user = getUser();
 
   if (!user) return null;
 
   const handleLogout = () => {
     clearAuth();
-    navigate("/login");
+    setLocation("/login");
   };
 
   const initials = user.name
