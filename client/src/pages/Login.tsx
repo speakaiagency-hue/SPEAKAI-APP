@@ -53,9 +53,7 @@ export default function Login() {
       <Card className="w-full max-w-md border-border/50 shadow-2xl bg-card/50 backdrop-blur-sm">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 rounded-lg bg-indigo-500/10 text-indigo-500">
-              <LogIn className="w-6 h-6" />
-            </div>
+            <img src="/speak-ai-logo.png" alt="Speak AI" className="h-16 object-contain" />
           </div>
           <CardTitle className="text-2xl">Speak AI</CardTitle>
           <p className="text-muted-foreground text-sm">
