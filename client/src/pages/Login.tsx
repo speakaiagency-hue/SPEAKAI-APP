@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 
 export default function Login() {
   const { toast } = useToast();
-  const [, navigate] = useNavigate();
+  const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +38,7 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(result.user));
 
       toast({ title: `Bem-vindo, ${result.user.name}!` });
-      navigate("/");
+      setLocation("/");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao fazer login";
       setError(message);
