@@ -31,11 +31,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside className="w-20 lg:w-64 border-r border-border flex flex-col fixed h-full z-50 glass bg-background/80 backdrop-blur-xl transition-all duration-300">
         <div className="p-6 flex items-center justify-center lg:justify-start gap-3 border-b border-border/50 h-20">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-lg shadow-primary/20">
-            <span className="text-white font-bold text-xl font-heading">P</span>
-          </div>
-          <span className="font-heading font-bold text-xl hidden lg:block bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-            Plataforma IA
+          <img src="/speak-ai-logo.png" alt="Speak AI" className="w-8 h-8 object-contain" />
+          <span className="font-heading font-bold text-lg hidden lg:block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-500">
+            Speak AI
           </span>
         </div>
 
