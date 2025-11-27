@@ -22,21 +22,35 @@ export default function ImagePage() {
     "https://images.unsplash.com/photo-1614728853913-1e221134d341?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
   ];
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!prompt) {
       toast({ title: "Digite um prompt primeiro", variant: "destructive" });
       return;
     }
     
     setIsGenerating(true);
-    // Simulate generation
-    setTimeout(() => {
-      // Shuffle mock images to simulate new generation
-      const shuffled = [...mockImages].sort(() => 0.5 - Math.random());
-      setGeneratedImages(shuffled);
+    try {
+      const response = await fetch("/api/image/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, aspectRatio }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erro ao gerar imagem");
+      }
+
+      const result = await response.json();
+      setGeneratedImages([result.imageUrl]);
+      toast({ title: "Imagem gerada com sucesso!" });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Ocorreu um erro inesperado.';
+      toast({ title: errorMessage, variant: "destructive" });
+      console.error("Image generation error:", err);
+    } finally {
       setIsGenerating(false);
-      toast({ title: "Imagens geradas com sucesso!" });
-    }, 2000);
+    }
   };
 
   return (

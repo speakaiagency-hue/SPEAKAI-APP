@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { generateVideo, type GenerateVideoParams } from "./services/geminiService";
 import { createChatService } from "./services/chatService";
 import { createPromptService } from "./services/promptService";
+import { createImageService } from "./services/imageService";
 
 // Store chat instances per session
 const chatInstances = new Map<string, any>();
@@ -14,6 +15,7 @@ export async function registerRoutes(
 ): Promise<Server> {
   const chatService = await createChatService();
   const promptService = await createPromptService();
+  const imageService = await createImageService();
 
   // Video Generation API
   app.post("/api/video/generate", async (req: Request, res: Response) => {
@@ -114,6 +116,24 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Prompt generation error:", error);
       const message = error instanceof Error ? error.message : "Erro ao gerar prompt";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  // Image Generation API
+  app.post("/api/image/generate", async (req: Request, res: Response) => {
+    try {
+      const { prompt, aspectRatio = "1:1" } = req.body;
+
+      if (!prompt || !prompt.trim()) {
+        return res.status(400).json({ error: "Descrição é obrigatória" });
+      }
+
+      const result = await imageService.generateImage(prompt, aspectRatio);
+      res.json(result);
+    } catch (error) {
+      console.error("Image generation error:", error);
+      const message = error instanceof Error ? error.message : "Erro ao gerar imagem";
       res.status(500).json({ error: message });
     }
   });
