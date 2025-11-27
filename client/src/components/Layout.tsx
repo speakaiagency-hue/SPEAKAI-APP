@@ -1,5 +1,5 @@
 import { useLocation, Link } from "wouter";
-import { MessageSquare, Type, Image as ImageIcon, Video, LayoutDashboard, Moon, Sun } from "lucide-react";
+import { MessageSquare, Type, Image as ImageIcon, Video, LayoutDashboard, Moon, Sun, BookOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/prompt", icon: Type, label: "Gerador de Prompt" },
     { href: "/image", icon: ImageIcon, label: "Gerar Imagem" },
     { href: "/video", icon: Video, label: "Gerar Vídeo" },
+    { href: "/members", icon: BookOpen, label: "Meus Cursos" },
   ];
 
   return (

@@ -9,6 +9,7 @@ import Chat from "./pages/Chat";
 import Prompt from "./pages/Prompt";
 import ImagePage from "./pages/Image";
 import VideoPage from "./pages/Video";
+import Members from "./pages/Members";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
         <Route path="/prompt" component={Prompt} />
         <Route path="/image" component={ImagePage} />
         <Route path="/video" component={VideoPage} />
+        <Route path="/members" component={Members} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
