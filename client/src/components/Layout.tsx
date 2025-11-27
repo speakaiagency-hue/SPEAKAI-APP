@@ -1,12 +1,13 @@
 import { useLocation, Link } from "wouter";
-import { MessageSquare, Type, Image as ImageIcon, Video, LayoutDashboard, Moon, Sun, BookOpen } from "lucide-react";
+import { MessageSquare, Type, Image as ImageIcon, Video, LayoutDashboard, Moon, Sun, BookOpen, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isDark, setIsDark] = useState(true);
+  const isAdmin = localStorage.getItem("adminLoggedIn") === "true";
 
   useEffect(() => {
     if (isDark) {
@@ -62,7 +63,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-border/50">
+        <div className="p-4 border-t border-border/50 space-y-2">
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setLocation("/admin")}
+              className="w-full flex items-center justify-center lg:justify-start gap-3 text-yellow-600 hover:text-yellow-500 hover:bg-yellow-500/10"
+            >
+              <Settings className="w-5 h-5" />
+              <span className="hidden lg:block">Painel Admin</span>
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
