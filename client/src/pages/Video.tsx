@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Video, Clapperboard, Film, Upload, PlayCircle, ArrowRight } from "lucide-react";
+import { Video, Clapperboard, Film, Upload, PlayCircle, ArrowRight, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,10 +13,16 @@ export default function VideoPage() {
   const [videoUrl, setVideoUrl] = useState("");
   const [creationMode, setCreationMode] = useState("text-to-video");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [referenceImages, setReferenceImages] = useState<string[]>([]);
   
   const handleGenerate = () => {
-    if (creationMode !== "text-to-video" && !uploadedImage) {
-      toast({ title: "Por favor, faça upload de uma imagem/referência", variant: "destructive" });
+    if (creationMode === "image-to-video" && !uploadedImage) {
+      toast({ title: "Por favor, faça upload de uma imagem", variant: "destructive" });
+      return;
+    }
+
+    if (creationMode === "reference-to-video" && referenceImages.length === 0) {
+      toast({ title: "Por favor, adicione pelo menos uma imagem de referência", variant: "destructive" });
       return;
     }
 
@@ -36,6 +42,25 @@ export default function VideoPage() {
       setUploadedImage(url);
       toast({ title: "Arquivo carregado com sucesso!" });
     }
+  };
+
+  const handleReferenceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (referenceImages.length >= 3) {
+        toast({ title: "Máximo de 3 imagens permitidas", variant: "destructive" });
+        return;
+      }
+      const url = URL.createObjectURL(file);
+      setReferenceImages([...referenceImages, url]);
+      toast({ title: "Referência adicionada!" });
+    }
+  };
+
+  const removeReference = (index: number) => {
+    const newImages = [...referenceImages];
+    newImages.splice(index, 1);
+    setReferenceImages(newImages);
   };
 
   return (
@@ -58,7 +83,11 @@ export default function VideoPage() {
             {/* Creation Mode Dropdown */}
             <div className="space-y-2">
               <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Modo de Criação</Label>
-              <Select value={creationMode} onValueChange={setCreationMode}>
+              <Select value={creationMode} onValueChange={(val) => {
+                setCreationMode(val);
+                setUploadedImage(null);
+                setReferenceImages([]);
+              }}>
                 <SelectTrigger className="w-full bg-[#1a1d24] border-[#2d3748] text-foreground h-12 rounded-lg focus:ring-indigo-500/50">
                   <SelectValue placeholder="Selecione o modo" />
                 </SelectTrigger>
@@ -73,7 +102,7 @@ export default function VideoPage() {
             {/* Input Area based on Mode */}
             <div className="space-y-2">
               <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                {creationMode === "text-to-video" ? "Prompt" : "Upload"}
+                {creationMode === "text-to-video" ? "Prompt" : creationMode === "reference-to-video" ? "Upload de Referências (Max 3)" : "Upload"}
               </Label>
               
               {creationMode === "text-to-video" ? (
@@ -81,6 +110,34 @@ export default function VideoPage() {
                   placeholder="Descreva o vídeo que você quer criar..." 
                   className="h-32 resize-none bg-[#1a1d24] border-[#2d3748] text-foreground rounded-lg focus:ring-indigo-500/50 placeholder:text-muted-foreground/50 p-4"
                 />
+              ) : creationMode === "reference-to-video" ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {referenceImages.map((img, idx) => (
+                    <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-[#2d3748] group">
+                      <img src={img} alt={`Ref ${idx}`} className="w-full h-full object-cover" />
+                      <button 
+                        onClick={() => removeReference(idx)}
+                        className="absolute top-1 right-1 bg-black/60 p-1 rounded-full text-white hover:bg-red-500/80 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {referenceImages.length < 3 && (
+                    <div className="aspect-square border-2 border-dashed border-[#2d3748] rounded-lg hover:bg-[#1a1d24] transition-colors relative cursor-pointer flex flex-col items-center justify-center gap-2 group">
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleReferenceUpload} 
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
+                      <div className="w-8 h-8 rounded-full bg-[#2d3748] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Plus className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <span className="text-[10px] text-gray-400 font-medium uppercase">Adicionar</span>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="border-2 border-dashed border-[#2d3748] rounded-lg p-6 hover:bg-[#1a1d24] transition-colors relative group cursor-pointer text-center bg-[#1a1d24]/50">
                   <input 
