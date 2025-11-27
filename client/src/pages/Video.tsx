@@ -1,23 +1,22 @@
 import { useState } from "react";
-import { Video, Clapperboard, Film, Upload, FileImage, Type, PlayCircle } from "lucide-react";
+import { Video, Clapperboard, Film, Upload, PlayCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function VideoPage() {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState("");
-  const [activeTab, setActiveTab] = useState("text-to-video");
+  const [creationMode, setCreationMode] = useState("text-to-video");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   
   const handleGenerate = () => {
-    if (activeTab === "image-to-video" && !uploadedImage) {
-      toast({ title: "Por favor, faça upload de uma imagem", variant: "destructive" });
+    if (creationMode !== "text-to-video" && !uploadedImage) {
+      toast({ title: "Por favor, faça upload de uma imagem/referência", variant: "destructive" });
       return;
     }
 
@@ -35,7 +34,7 @@ export default function VideoPage() {
     if (file) {
       const url = URL.createObjectURL(file);
       setUploadedImage(url);
-      toast({ title: "Imagem carregada com sucesso!" });
+      toast({ title: "Arquivo carregado com sucesso!" });
     }
   };
 
@@ -44,118 +43,115 @@ export default function VideoPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-heading font-bold flex items-center gap-2">
-            <span className="p-2 rounded-lg bg-red-500/10 text-red-500"><Video className="w-6 h-6" /></span>
+            <span className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500"><Video className="w-6 h-6" /></span>
             Geração de Vídeo
           </h1>
-          <p className="text-muted-foreground">Crie vídeos cinematográficos usando IA.</p>
+          <p className="text-muted-foreground">Crie vídeos cinematográficos a partir de texto ou imagens.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Controls */}
-        <Card className="lg:col-span-4 border-border/50 shadow-lg bg-card/50 backdrop-blur-sm h-fit">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2">
-              <Clapperboard className="w-5 h-5" /> Configuração
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <Tabs defaultValue="text-to-video" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="text-to-video" className="gap-2"><Type className="w-4 h-4" /> Texto</TabsTrigger>
-                <TabsTrigger value="image-to-video" className="gap-2"><FileImage className="w-4 h-4" /> Imagem</TabsTrigger>
-              </TabsList>
+        {/* Controls - Styled to match screenshot */}
+        <Card className="lg:col-span-5 border-border/50 shadow-xl bg-[#0f1117] border-[#1f2937] h-fit overflow-hidden">
+          <CardContent className="p-6 space-y-6">
+            
+            {/* Creation Mode Dropdown */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Modo de Criação</Label>
+              <Select value={creationMode} onValueChange={setCreationMode}>
+                <SelectTrigger className="w-full bg-[#1a1d24] border-[#2d3748] text-foreground h-12 rounded-lg focus:ring-indigo-500/50">
+                  <SelectValue placeholder="Selecione o modo" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1d24] border-[#2d3748] text-foreground">
+                  <SelectItem value="text-to-video">Texto para Vídeo</SelectItem>
+                  <SelectItem value="image-to-video">Imagem para Vídeo</SelectItem>
+                  <SelectItem value="reference-to-video">Referências para Vídeo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-              <TabsContent value="text-to-video" className="space-y-4 mt-0">
-                <div className="space-y-2">
-                  <Label>Descreva seu vídeo</Label>
-                  <Textarea 
-                    placeholder="Um drone voando sobre uma cidade futurista cyberpunk à noite, luzes neon, chuva caindo..." 
-                    className="h-32 resize-none bg-secondary/20"
+            {/* Input Area based on Mode */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                {creationMode === "text-to-video" ? "Prompt" : "Upload"}
+              </Label>
+              
+              {creationMode === "text-to-video" ? (
+                <Textarea 
+                  placeholder="Descreva o vídeo que você quer criar..." 
+                  className="h-32 resize-none bg-[#1a1d24] border-[#2d3748] text-foreground rounded-lg focus:ring-indigo-500/50 placeholder:text-muted-foreground/50 p-4"
+                />
+              ) : (
+                <div className="border-2 border-dashed border-[#2d3748] rounded-lg p-6 hover:bg-[#1a1d24] transition-colors relative group cursor-pointer text-center bg-[#1a1d24]/50">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageUpload} 
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="image-to-video" className="space-y-4 mt-0">
-                <div className="space-y-2">
-                  <Label>Imagem de Referência</Label>
-                  <div className="border-2 border-dashed border-border rounded-xl p-6 hover:bg-secondary/20 transition-colors relative group cursor-pointer text-center">
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handleImageUpload} 
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    {uploadedImage ? (
-                      <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-                        <img src={uploadedImage} alt="Upload" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <span className="text-white font-medium flex items-center gap-2"><Upload className="w-4 h-4" /> Trocar Imagem</span>
-                        </div>
+                  {uploadedImage ? (
+                    <div className="relative w-full aspect-video rounded-md overflow-hidden">
+                      <img src={uploadedImage} alt="Upload" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-white font-medium flex items-center gap-2"><Upload className="w-4 h-4" /> Trocar</span>
                       </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2 py-4">
-                        <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mb-2">
-                          <Upload className="w-6 h-6 text-muted-foreground" />
-                        </div>
-                        <p className="text-sm font-medium">Clique ou arraste uma imagem</p>
-                        <p className="text-xs text-muted-foreground">PNG, JPG até 10MB</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-3 py-4">
+                      <div className="w-12 h-12 rounded-full bg-[#2d3748] flex items-center justify-center">
+                        <Upload className="w-5 h-5 text-gray-400" />
                       </div>
-                    )}
-                  </div>
+                      <p className="text-sm font-medium text-gray-300">Clique para fazer upload</p>
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label>Instruções de Animação (Opcional)</Label>
-                  <Textarea 
-                    placeholder="Faça as ondas do mar se moverem suavemente..." 
-                    className="h-20 resize-none bg-secondary/20"
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
+              )}
+            </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-2">
+            {/* Format and Resolution Row */}
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Duração</Label>
-                <Select defaultValue="4s">
-                  <SelectTrigger>
+                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Formato</Label>
+                <Select defaultValue="16:9">
+                  <SelectTrigger className="w-full bg-[#1a1d24] border-[#2d3748] text-foreground h-12 rounded-lg">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2s">2 segundos</SelectItem>
-                    <SelectItem value="4s">4 segundos</SelectItem>
-                    <SelectItem value="8s">8 segundos</SelectItem>
+                  <SelectContent className="bg-[#1a1d24] border-[#2d3748] text-foreground">
+                    <SelectItem value="16:9">Paisagem (16:9)</SelectItem>
+                    <SelectItem value="9:16">Retrato (9:16)</SelectItem>
+                    <SelectItem value="1:1">Quadrado (1:1)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Resolução</Label>
-                <Select defaultValue="1080p">
-                  <SelectTrigger>
+                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Resolução</Label>
+                <Select defaultValue="720p">
+                  <SelectTrigger className="w-full bg-[#1a1d24] border-[#2d3748] text-foreground h-12 rounded-lg">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="720p">720p HD</SelectItem>
-                    <SelectItem value="1080p">1080p FHD</SelectItem>
+                  <SelectContent className="bg-[#1a1d24] border-[#2d3748] text-foreground">
+                    <SelectItem value="720p">720p</SelectItem>
+                    <SelectItem value="1080p">1080p</SelectItem>
+                    <SelectItem value="4k">4K (Pro)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
+            {/* Generate Button */}
             <Button 
-              className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold shadow-lg shadow-red-500/20 py-6"
+              className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold shadow-lg shadow-indigo-500/20 h-14 rounded-lg text-lg mt-4 transition-all duration-300 hover:scale-[1.02]"
               onClick={handleGenerate}
               disabled={isGenerating}
             >
               {isGenerating ? (
                 <span className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Renderizando...
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Gerando...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  <PlayCircle className="w-5 h-5" />
-                  Gerar Vídeo
+                  Gerar <ArrowRight className="w-5 h-5 ml-1" />
                 </span>
               )}
             </Button>
@@ -163,7 +159,7 @@ export default function VideoPage() {
         </Card>
 
         {/* Preview Area */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-7 space-y-6">
           <div className="aspect-video rounded-2xl overflow-hidden bg-black border border-border/50 shadow-2xl relative group ring-1 ring-white/10">
             {videoUrl ? (
               <video 
@@ -174,13 +170,13 @@ export default function VideoPage() {
                 loop 
               />
             ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground bg-secondary/10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-secondary/20 to-background">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground bg-[#0f1117] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#1f2937] to-[#0f1117]">
                 {isGenerating ? (
                   <div className="flex flex-col items-center gap-6">
                     <div className="relative">
-                      <div className="w-20 h-20 border-4 border-primary/20 rounded-full animate-spin" />
-                      <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                      <Film className="absolute inset-0 m-auto w-8 h-8 text-primary animate-pulse" />
+                      <div className="w-20 h-20 border-4 border-indigo-500/20 rounded-full animate-spin" />
+                      <div className="absolute inset-0 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                      <Film className="absolute inset-0 m-auto w-8 h-8 text-indigo-500 animate-pulse" />
                     </div>
                     <div className="text-center space-y-1">
                       <p className="text-lg font-medium text-foreground animate-pulse">Criando sua obra-prima...</p>
@@ -189,13 +185,13 @@ export default function VideoPage() {
                   </div>
                 ) : (
                   <div className="text-center space-y-4 p-6">
-                    <div className="w-24 h-24 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-2 border border-white/5">
-                      <Film className="w-10 h-10 opacity-30" />
+                    <div className="w-24 h-24 rounded-full bg-[#1f2937] flex items-center justify-center mx-auto mb-2 border border-white/5">
+                      <Film className="w-10 h-10 opacity-30 text-indigo-400" />
                     </div>
                     <div>
                       <p className="text-xl font-medium text-foreground">Preview do Vídeo</p>
                       <p className="text-sm opacity-60 max-w-md mx-auto mt-2">
-                        Seu vídeo gerado aparecerá aqui em alta definição. Configure os parâmetros ao lado para começar.
+                        Configure os parâmetros ao lado e clique em "Gerar" para visualizar o resultado.
                       </p>
                     </div>
                   </div>
@@ -204,13 +200,13 @@ export default function VideoPage() {
             )}
           </div>
 
-          {/* Storyboard Preview (Mock) */}
+          {/* Storyboard Preview */}
           <div>
-            <Label className="mb-3 block text-muted-foreground">Storyboard (Preview dos Frames)</Label>
+            <Label className="mb-3 block text-muted-foreground font-medium">Frames Gerados</Label>
             <div className="grid grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((frame) => (
-                <div key={frame} className="aspect-video rounded-lg bg-secondary/30 border border-border/50 flex items-center justify-center group hover:border-primary/50 transition-colors cursor-pointer">
-                  <span className="text-xs text-muted-foreground group-hover:text-primary">Frame {frame}</span>
+                <div key={frame} className="aspect-video rounded-lg bg-[#1f2937] border border-white/5 flex items-center justify-center group hover:border-indigo-500/50 transition-colors cursor-pointer shadow-sm">
+                  <span className="text-xs text-muted-foreground group-hover:text-indigo-400">Frame {frame}</span>
                 </div>
               ))}
             </div>
