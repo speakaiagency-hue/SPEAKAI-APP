@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateVideo, type GenerateVideoParams } from "./services/geminiService";
 import { createChatService } from "./services/chatService";
+import { createPromptService } from "./services/promptService";
 
 // Store chat instances per session
 const chatInstances = new Map<string, any>();
@@ -12,6 +13,7 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   const chatService = await createChatService();
+  const promptService = await createPromptService();
 
   // Video Generation API
   app.post("/api/video/generate", async (req: Request, res: Response) => {
@@ -95,6 +97,24 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Erro ao limpar sessão" });
+    }
+  });
+
+  // Prompt Generation API
+  app.post("/api/prompt/generate", async (req: Request, res: Response) => {
+    try {
+      const { userInput } = req.body;
+
+      if (!userInput || !userInput.trim()) {
+        return res.status(400).json({ error: "Descrição é obrigatória" });
+      }
+
+      const result = await promptService.generateCreativePrompt(userInput);
+      res.json({ prompt: result });
+    } catch (error) {
+      console.error("Prompt generation error:", error);
+      const message = error instanceof Error ? error.message : "Erro ao gerar prompt";
+      res.status(500).json({ error: message });
     }
   });
 

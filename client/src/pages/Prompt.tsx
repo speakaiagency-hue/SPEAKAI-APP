@@ -13,30 +13,36 @@ export default function Prompt() {
   const [qualityScore, setQualityScore] = useState(0);
   const [input, setInput] = useState("");
   
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!input.trim()) {
       toast({ title: "Por favor, descreva o conteúdo primeiro", variant: "destructive" });
       return;
     }
 
     setIsGenerating(true);
-    setTimeout(() => {
-      const prompt = `Atue como um especialista no assunto descrito.
-Aqui está um prompt otimizado com base na sua descrição:
+    try {
+      const response = await fetch("/api/prompt/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userInput: input }),
+      });
 
-"${input}"
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erro ao gerar prompt");
+      }
 
-Estrutura sugerida para melhor resultado:
-1. Contexto: [Contexto expandido sobre o tema]
-2. Tarefa: [Definição clara do objetivo]
-3. Formato: [Estrutura de resposta ideal]
-4. Tom de voz: Profissional e direto.`;
-      
-      setGeneratedPrompt(prompt);
+      const result = await response.json();
+      setGeneratedPrompt(result.prompt);
       setQualityScore(Math.floor(Math.random() * 15) + 85);
-      setIsGenerating(false);
       toast({ title: "Prompt gerado com sucesso!" });
-    }, 1500);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao conectar com IA";
+      toast({ title: message, variant: "destructive" });
+      console.error("Prompt generation error:", error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleCopy = () => {
