@@ -102,7 +102,7 @@ export default function Members() {
             <span className="p-2 rounded-lg bg-cyan-500/10 text-cyan-500">
               <BookOpen className="w-6 h-6" />
             </span>
-            Meus Cursos
+            Área de Membros
           </h1>
           <p className="text-muted-foreground">
             Gerencie seus cursos e acesso de membros
