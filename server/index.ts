@@ -61,7 +61,23 @@ app.use((req, res, next) => {
 
 (async () => {
   const { registerAuthRoutes } = await import("./routes/authRoutes");
+  const { registerWebhookRoutes } = await import("./routes/webhookRoutes");
+  const { creditsCheckMiddleware } = await import("./middleware/creditsMiddleware");
+  const { authMiddleware } = await import("./middleware/authMiddleware");
+  
   await registerAuthRoutes(app);
+  await registerWebhookRoutes(app);
+  
+  // Apply credits check middleware to protected routes
+  app.use((req, res, next) => {
+    if (req.path.startsWith("/api/chat") || req.path.startsWith("/api/image") || 
+        req.path.startsWith("/api/prompt") || req.path.startsWith("/api/video")) {
+      authMiddleware(req, res, () => creditsCheckMiddleware(req, res, next));
+    } else {
+      next();
+    }
+  });
+  
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

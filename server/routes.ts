@@ -6,6 +6,7 @@ import { createChatService } from "./services/chatService";
 import { createPromptService } from "./services/promptService";
 import { createImageService } from "./services/imageService";
 import { authMiddleware } from "./middleware/authMiddleware";
+import { deductCredits } from "./services/webhookService";
 
 // Store chat instances per session
 const chatInstances = new Map<string, any>();
@@ -27,8 +28,14 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Prompt é obrigatório" });
       }
 
+      // Deduct credits
+      const deductResult = await deductCredits(req.user!.id, "video");
+      if (!deductResult.success) {
+        return res.status(402).json(deductResult);
+      }
+
       const result = await generateVideo(params);
-      res.json(result);
+      res.json({ ...result, creditsRemaining: deductResult.creditsRemaining });
     } catch (error) {
       console.error("Video generation error:", error);
       const message = error instanceof Error ? error.message : "Erro ao gerar vídeo";
@@ -51,6 +58,12 @@ export async function registerRoutes(
           .json({ error: "ID da conversa é obrigatório" });
       }
 
+      // Deduct credits
+      const deductResult = await deductCredits(req.user!.id, "chat");
+      if (!deductResult.success) {
+        return res.status(402).json(deductResult);
+      }
+
       // Create or get chat instance
       if (!chatInstances.has(conversationId)) {
         chatInstances.set(conversationId, chatService.createChat(history));
@@ -59,7 +72,7 @@ export async function registerRoutes(
       const chat = chatInstances.get(conversationId);
       const result = await chatService.sendMessage(chat, message);
 
-      res.json({ text: result.text });
+      res.json({ text: result.text, creditsRemaining: deductResult.creditsRemaining });
     } catch (error) {
       console.error("Chat error:", error);
       const message = error instanceof Error ? error.message : "Erro ao enviar mensagem";
@@ -112,8 +125,14 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Descrição é obrigatória" });
       }
 
+      // Deduct credits
+      const deductResult = await deductCredits(req.user!.id, "prompt");
+      if (!deductResult.success) {
+        return res.status(402).json(deductResult);
+      }
+
       const result = await promptService.generateCreativePrompt(userInput);
-      res.json({ prompt: result });
+      res.json({ prompt: result, creditsRemaining: deductResult.creditsRemaining });
     } catch (error) {
       console.error("Prompt generation error:", error);
       const message = error instanceof Error ? error.message : "Erro ao gerar prompt";
@@ -130,8 +149,14 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Descrição é obrigatória" });
       }
 
+      // Deduct credits
+      const deductResult = await deductCredits(req.user!.id, "image");
+      if (!deductResult.success) {
+        return res.status(402).json(deductResult);
+      }
+
       const result = await imageService.generateImage(prompt, aspectRatio);
-      res.json(result);
+      res.json({ ...result, creditsRemaining: deductResult.creditsRemaining });
     } catch (error) {
       console.error("Image generation error:", error);
       const message = error instanceof Error ? error.message : "Erro ao gerar imagem";
