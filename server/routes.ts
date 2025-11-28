@@ -173,8 +173,12 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Avatar é obrigatório" });
       }
 
+      console.log("Avatar update request for user:", req.user?.id);
+      console.log("Avatar size:", avatar.length);
+      
       const updatedUser = await storage.updateUserAvatar(req.user!.id, avatar);
       if (!updatedUser) {
+        console.error("User not found for ID:", req.user?.id);
         return res.status(404).json({ error: "Usuário não encontrado" });
       }
 
