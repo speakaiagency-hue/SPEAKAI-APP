@@ -48,7 +48,7 @@ export function CreditsModal({ open, onOpenChange }: CreditsModalProps) {
 
               <div className="mb-6 space-y-2">
                 <div className="text-sm line-through text-muted-foreground text-center">{plan.originalPrice}</div>
-                <div className="text-2xl font-bold text-white">{plan.price}</div>
+                <div className="text-2xl font-bold text-white text-center">{plan.price}</div>
               </div>
 
               <Button
