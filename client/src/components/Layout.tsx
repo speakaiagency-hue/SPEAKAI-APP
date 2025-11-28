@@ -62,8 +62,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col md:flex-row bg-background text-foreground transition-colors duration-300">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 border-r border-border flex-col fixed h-full z-50 glass bg-background/80 backdrop-blur-xl transition-all duration-300">
-        <div className="p-4 flex items-center justify-start border-b border-border/50 h-auto py-6">
-          <img src="/speak-ai-logo.png" alt="Speak AI" className="h-20 object-contain" />
+        <div className="p-4 flex items-center justify-start border-b border-border/50 h-auto py-3">
+          <img src="/speak-ai-logo.png" alt="Speak AI" className="h-10 object-contain" />
         </div>
 
         <nav className="flex-1 py-6 px-3 space-y-2">
@@ -98,8 +98,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="flex items-center justify-between p-4 h-20">
-          <img src="/speak-ai-logo.png" alt="Speak AI" className="h-12 object-contain" />
+        <div className="flex items-center justify-between p-4 h-16">
+          <img src="/speak-ai-logo.png" alt="Speak AI" className="h-8 object-contain" />
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
