@@ -1,5 +1,5 @@
 import { useLocation, Link } from "wouter";
-import { MessageSquare, Type, Image as ImageIcon, Video, LayoutDashboard, Moon, Sun, Menu, Zap } from "lucide-react";
+import { MessageSquare, Type, Image as ImageIcon, Video, LayoutDashboard, Menu, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -9,18 +9,13 @@ import { UserMenu } from "./UserMenu";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  const [isDark, setIsDark] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
   const [creditsOpen, setCreditsOpen] = useState(false);
 
   useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [isDark]);
+    document.documentElement.classList.add("dark");
+  }, []);
 
   const navItems = [
     { href: "/", icon: LayoutDashboard, label: "Início" },
@@ -71,15 +66,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="p-4 border-t border-border/50 space-y-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsDark(!isDark)}
-            className="w-full flex items-center justify-start gap-3 text-muted-foreground hover:text-foreground"
-          >
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            <span>{isDark ? "Modo Claro" : "Modo Escuro"}</span>
-          </Button>
         </div>
       </aside>
 
@@ -135,14 +121,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 }}
               >
                 Planos
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => setIsDark(!isDark)}
-                className="w-full flex items-center justify-start gap-3 text-muted-foreground hover:text-foreground"
-              >
-                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                <span>{isDark ? "Modo Claro" : "Modo Escuro"}</span>
               </Button>
             </div>
           </div>
