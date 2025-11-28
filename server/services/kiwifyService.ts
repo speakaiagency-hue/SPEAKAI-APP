@@ -11,10 +11,14 @@ interface KiwifyUser {
 }
 
 export async function createKiwifyService() {
-  const apiKey = process.env.KIWIFY_API_KEY;
+  const clientSecret = process.env.KIWIFY_CLIENT_SECRET || process.env.KIWIFY_API_KEY;
+  
+  // In development, we can mock if not configured
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const apiKey = clientSecret || (isDevelopment ? "mock_kiwify_key" : "");
 
-  if (!apiKey) {
-    throw new Error("KIWIFY_API_KEY environment variable is not configured");
+  if (!apiKey && !isDevelopment) {
+    throw new Error("KIWIFY_CLIENT_SECRET environment variable is not configured");
   }
 
   return {
