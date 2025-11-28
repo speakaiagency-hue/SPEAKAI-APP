@@ -111,6 +111,31 @@
   }
 }
 
+/* Transparent Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-color: transparent transparent;
+  scrollbar-width: thin;
+}
+
 @layer utilities {
   body {
     animation: gradientShift 8s ease-in-out infinite;
