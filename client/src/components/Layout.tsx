@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { PlansModal } from "./PlansModal";
 import { CreditsModal } from "./CreditsModal";
 import { UserMenu } from "./UserMenu";
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated, getAuthHeader } from "@/lib/auth";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
@@ -14,11 +14,32 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [plansOpen, setPlansOpen] = useState(false);
   const [creditsOpen, setCreditsOpen] = useState(false);
   const [isLogged, setIsLogged] = useState(false);
+  const [credits, setCredits] = useState<number | null>(null);
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
     setIsLogged(isAuthenticated());
+    
+    if (isAuthenticated()) {
+      fetchCredits();
+      const interval = setInterval(fetchCredits, 5000);
+      return () => clearInterval(interval);
+    }
   }, []);
+
+  const fetchCredits = async () => {
+    try {
+      const response = await fetch("/api/credits/balance", {
+        headers: getAuthHeader(),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCredits(data.credits);
+      }
+    } catch (error) {
+      console.error("Error fetching credits:", error);
+    }
+  };
 
   const navItems = [
     { href: "/", icon: LayoutDashboard, label: "Início" },
@@ -76,7 +97,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="flex items-center justify-between p-4 h-16">
           <img src="/speak-ai-logo.png" alt="Speak AI" className="h-8 object-contain" />
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {isLogged && credits !== null && (
+              <div className="flex items-center gap-1 px-3 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-sm font-semibold text-indigo-400">
+                <Zap className="w-4 h-4" />
+                {credits}
+              </div>
+            )}
             {isLogged && <UserMenu />}
             <Button
               variant="ghost"
