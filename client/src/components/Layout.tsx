@@ -161,7 +161,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             >
               Planos
             </Button>
-            <UserMenu />
+            {isLogged ? (
+              <UserMenu />
+            ) : (
+              <Button
+                className="bg-white text-indigo-600 hover:bg-gray-100 rounded-full font-semibold"
+                onClick={() => setLocation("/login")}
+              >
+                Login
+              </Button>
+            )}
           </div>
         </div>
 
