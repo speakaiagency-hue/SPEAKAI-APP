@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { getAuthHeader } from "@/lib/auth";
-import { CreditsDisplay } from "@/components/CreditsDisplay";
 
 const VIDEO_COST = 20;
 
@@ -29,7 +28,6 @@ export default function VideoPage() {
   const [prompt, setPrompt] = useState("");
   const [aspectRatio, setAspectRatio] = useState("16:9");
   const [resolution, setResolution] = useState("720p");
-  const [creditsRemaining, setCreditsRemaining] = useState<number>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const fileToBase64 = (file: File): Promise<string> => {
@@ -96,9 +94,6 @@ export default function VideoPage() {
 
       const result = await response.json();
       setVideoUrl(result.videoUrl);
-      if (result.creditsRemaining !== undefined) {
-        setCreditsRemaining(result.creditsRemaining);
-      }
       toast({ title: "Vídeo gerado com sucesso!" });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erro ao gerar vídeo";
@@ -162,13 +157,6 @@ export default function VideoPage() {
           <p className="text-muted-foreground">Crie vídeos cinematográficos a partir de texto ou imagens.</p>
         </div>
       </div>
-
-      {/* Credits Display */}
-      <CreditsDisplay 
-        operationCost={VIDEO_COST} 
-        operationName="gerar vídeo"
-        creditsAfterOperation={creditsRemaining}
-      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Controls - Styled to match screenshot */}

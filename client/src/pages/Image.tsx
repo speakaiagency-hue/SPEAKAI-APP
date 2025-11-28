@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { getAuthHeader } from "@/lib/auth";
-import { CreditsDisplay } from "@/components/CreditsDisplay";
 
 const IMAGE_COST = 5;
 
@@ -17,7 +16,6 @@ export default function ImagePage() {
   const [prompt, setPrompt] = useState("");
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [aspectRatio, setAspectRatio] = useState("16:9");
-  const [creditsRemaining, setCreditsRemaining] = useState<number>();
 
   // Mock images for demo
   const mockImages = [
@@ -51,9 +49,6 @@ export default function ImagePage() {
 
       const result = await response.json();
       setGeneratedImages([result.imageUrl]);
-      if (result.creditsRemaining !== undefined) {
-        setCreditsRemaining(result.creditsRemaining);
-      }
       toast({ title: "Imagem gerada com sucesso!" });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Ocorreu um erro inesperado.';
@@ -76,13 +71,6 @@ export default function ImagePage() {
 
       {/* Main Input Card - Matches Screenshot */}
       <div className="space-y-4">
-        {/* Credits Display */}
-        <CreditsDisplay 
-          operationCost={IMAGE_COST} 
-          operationName="gerar imagem"
-          creditsAfterOperation={creditsRemaining}
-        />
-
         <div className="bg-[#0f1117] p-1 rounded-xl border border-[#1f2937] shadow-2xl">
           <Textarea 
             value={prompt}
