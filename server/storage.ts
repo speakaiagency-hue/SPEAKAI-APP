@@ -19,12 +19,10 @@ export class MemStorage implements IStorage {
     this.userCredits = new Map();
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find((user) => user.username === username);
+    const user = Array.from(this.users.values()).find((user) => user.username === username);
+    console.log(`🔍 getUserByUsername(${username}):`, !!user, `totalUsers: ${this.users.size}`);
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -32,6 +30,13 @@ export class MemStorage implements IStorage {
     const user: User = { ...insertUser, id, name: null, email: null, avatar: null, status: "active" };
     this.users.set(id, user);
     this.userCredits.set(id, { credits: 0, totalUsed: 0, totalPurchased: 0 });
+    console.log("✅ User created:", { id, username: user.username, totalUsers: this.users.size });
+    return user;
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    const user = this.users.get(id);
+    console.log(`🔍 getUser(${id}):`, !!user, `totalUsers: ${this.users.size}`);
     return user;
   }
 

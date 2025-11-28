@@ -129,8 +129,13 @@ export async function registerAuthRoutes(app: Express) {
         return res.status(400).json({ error: "Avatar é obrigatório" });
       }
       
+      console.log("🔍 Avatar update - User ID from token:", req.user?.id);
+      const user = await storage.getUser(req.user!.id);
+      console.log("🔍 User found in storage:", !!user);
+      
       const updatedUser = await storage.updateUserAvatar(req.user!.id, avatar);
       if (!updatedUser) {
+        console.error("❌ User not found for avatar update with ID:", req.user?.id);
         return res.status(404).json({ error: "Usuário não encontrado" });
       }
 
