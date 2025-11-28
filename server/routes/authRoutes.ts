@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createKiwifyService } from "../services/kiwifyService";
-import { generateToken } from "../middleware/authMiddleware";
+import { generateToken, authMiddleware } from "../middleware/authMiddleware";
 import { storage } from "../storage";
 
 export async function registerAuthRoutes(app: Express) {
@@ -117,6 +117,69 @@ export async function registerAuthRoutes(app: Express) {
       res.json({ message: "User data retrieved successfully" });
     } catch (error) {
       res.status(500).json({ error: "Erro ao buscar usuário" });
+    }
+  });
+
+  // Update User Avatar (Protected)
+  app.post("/api/auth/update-avatar", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { avatar } = req.body;
+      
+      if (!avatar) {
+        return res.status(400).json({ error: "Avatar é obrigatório" });
+      }
+      
+      const updatedUser = await storage.updateUserAvatar(req.user!.id, avatar);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+      }
+
+      res.json({ user: updatedUser });
+    } catch (error) {
+      console.error("Avatar update error:", error);
+      res.status(500).json({ error: "Erro ao atualizar avatar" });
+    }
+  });
+
+  // Update User Profile (Protected)
+  app.post("/api/auth/update-profile", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { name, email } = req.body;
+      
+      if (!name || !email) {
+        return res.status(400).json({ error: "Nome e email são obrigatórios" });
+      }
+
+      const updatedUser = await storage.updateUserProfile(req.user!.id, { name, email });
+      if (!updatedUser) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+      }
+
+      res.json({ user: updatedUser });
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ error: "Erro ao atualizar perfil" });
+    }
+  });
+
+  // Change Password (Protected)
+  app.post("/api/auth/change-password", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { newPassword } = req.body;
+      
+      if (!newPassword || newPassword.length < 6) {
+        return res.status(400).json({ error: "Senha deve ter no mínimo 6 caracteres" });
+      }
+
+      const updated = await storage.updateUserPassword(req.user!.id, newPassword);
+      if (!updated) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Password change error:", error);
+      res.status(500).json({ error: "Erro ao alterar senha" });
     }
   });
 }
