@@ -164,5 +164,26 @@ export async function registerRoutes(
     }
   });
 
+  // Update User Avatar (Protected)
+  app.post("/api/auth/update-avatar", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { avatar } = req.body;
+      
+      if (!avatar) {
+        return res.status(400).json({ error: "Avatar é obrigatório" });
+      }
+
+      const updatedUser = await storage.updateUserAvatar(req.user!.id, avatar);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+      }
+
+      res.json({ user: updatedUser });
+    } catch (error) {
+      console.error("Avatar update error:", error);
+      res.status(500).json({ error: "Erro ao atualizar avatar" });
+    }
+  });
+
   return httpServer;
 }
