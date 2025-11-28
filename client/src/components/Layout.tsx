@@ -1,5 +1,5 @@
 import { useLocation, Link } from "wouter";
-import { MessageSquare, Type, Image as ImageIcon, Video, LayoutDashboard, Moon, Sun, BookOpen, Settings, Menu, Zap } from "lucide-react";
+import { MessageSquare, Type, Image as ImageIcon, Video, LayoutDashboard, Moon, Sun, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
   const [creditsOpen, setCreditsOpen] = useState(false);
-  const isAdmin = localStorage.getItem("adminLoggedIn") === "true";
 
   useEffect(() => {
     if (isDark) {
@@ -72,17 +71,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="p-4 border-t border-border/50 space-y-2">
-          {isAdmin && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setLocation("/admin")}
-              className="w-full flex items-center justify-start gap-3 text-yellow-600 hover:text-yellow-500 hover:bg-yellow-500/10"
-            >
-              <Settings className="w-5 h-5" />
-              <span>Painel Admin</span>
-            </Button>
-          )}
           <Button
             variant="ghost"
             size="icon"
@@ -118,19 +106,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <NavLink key={item.href} item={item} />
             ))}
             <div className="border-t border-border/50 pt-4 space-y-2 mt-4">
-              {isAdmin && (
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setLocation("/admin");
-                    setIsOpen(false);
-                  }}
-                  className="w-full flex items-center justify-start gap-3 text-yellow-600 hover:text-yellow-500 hover:bg-yellow-500/10"
-                >
-                  <Settings className="w-5 h-5" />
-                  <span>Painel Admin</span>
-                </Button>
-              )}
               <Button
                 variant="ghost"
                 onClick={() => setIsDark(!isDark)}

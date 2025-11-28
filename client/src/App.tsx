@@ -11,7 +11,6 @@ import Chat from "./pages/Chat";
 import Prompt from "./pages/Prompt";
 import ImagePage from "./pages/Image";
 import VideoPage from "./pages/Video";
-import Admin from "./pages/Admin";
 import NotFound from "./pages/not-found";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
@@ -20,7 +19,6 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
-      <Route path="/admin" component={Admin} />
       <Route path="/" component={() => <Layout><Home /></Layout>} />
       <Route path="/chat" component={() => <ProtectedRoute><Layout><Chat /></Layout></ProtectedRoute>} />
       <Route path="/prompt" component={() => <ProtectedRoute><Layout><Prompt /></Layout></ProtectedRoute>} />
