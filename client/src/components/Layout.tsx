@@ -1,5 +1,5 @@
 import { useLocation, Link } from "wouter";
-import { MessageSquare, Type, Image as ImageIcon, Video, LayoutDashboard, Moon, Sun, Menu } from "lucide-react";
+import { MessageSquare, Type, Image as ImageIcon, Video, LayoutDashboard, Moon, Sun, Menu, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
