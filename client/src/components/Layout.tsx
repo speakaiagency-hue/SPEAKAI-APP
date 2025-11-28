@@ -97,31 +97,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             ))}
             <div className="border-t border-border/50 pt-4 space-y-2 mt-4">
               {isLogged && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full border-border/50 text-foreground hover:bg-secondary/50 text-xs justify-start"
-                    onClick={() => {
-                      setCreditsOpen(true);
-                      setIsOpen(false);
-                    }}
-                  >
-                    <Zap className="w-3 h-3 mr-2" />
-                    Créditos
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full border-border/50 text-foreground hover:bg-secondary/50 text-xs justify-start"
-                    onClick={() => {
-                      setLocation("/profile");
-                      setIsOpen(false);
-                    }}
-                  >
-                    👤 Meu Perfil
-                  </Button>
-                </>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-border/50 text-foreground hover:bg-secondary/50 text-xs justify-start"
+                  onClick={() => {
+                    setCreditsOpen(true);
+                    setIsOpen(false);
+                  }}
+                >
+                  <Zap className="w-3 h-3 mr-2" />
+                  Créditos
+                </Button>
               )}
               <Button
                 variant="outline"
@@ -141,19 +128,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               >
                 Planos
               </Button>
-              {isLogged && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full text-red-500 hover:bg-red-500/10 text-xs justify-start"
-                  onClick={() => {
-                    setLocation("/login");
-                    setIsOpen(false);
-                  }}
-                >
-                  🚪 Sair
-                </Button>
-              )}
             </div>
           </div>
         )}
