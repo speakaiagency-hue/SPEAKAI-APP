@@ -27,14 +27,16 @@ export async function createImageService() {
           },
         });
 
-        for (const part of geminiResponse.candidates[0].content.parts) {
-          if (part.inlineData) {
-            const base64EncodeString: string = part.inlineData.data;
-            const mimeType = part.inlineData.mimeType;
-            return {
-              imageUrl: `data:${mimeType};base64,${base64EncodeString}`,
-              model: "Gemini Flash",
-            };
+        if (geminiResponse.candidates && geminiResponse.candidates[0] && geminiResponse.candidates[0].content && geminiResponse.candidates[0].content.parts) {
+          for (const part of geminiResponse.candidates[0].content.parts) {
+            if (part.inlineData) {
+              const base64EncodeString: string = part.inlineData.data || "";
+              const mimeType = part.inlineData.mimeType;
+              return {
+                imageUrl: `data:${mimeType};base64,${base64EncodeString}`,
+                model: "Gemini Flash",
+              };
+            }
           }
         }
 

@@ -32,7 +32,7 @@ export async function createChatService() {
           model: "gemini-2.5-flash",
           contents: `Analise a primeira mensagem de uma conversa e crie um título curto e temático (máximo 4 palavras). Mensagem do usuário: "${text}". Responda apenas com o título, sem nenhuma outra formatação ou texto.`,
         });
-        return response.text.trim().replace(/"/g, "");
+        return (response.text || "").trim().replace(/"/g, "") || text.split(" ").slice(0, 5).join(" ");
       } catch (error) {
         console.error("Failed to generate title:", error);
         return text.split(" ").slice(0, 5).join(" ");

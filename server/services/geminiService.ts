@@ -70,8 +70,8 @@ export async function generateVideo(params: GenerateVideoParams) {
     const videos = operation.response.generatedVideos;
 
     if (!videos || videos.length === 0) {
-      if (operation.error?.message) {
-        throw new Error(operation.error.message);
+      if (operation.error) {
+        throw new Error(typeof operation.error === 'string' ? operation.error : JSON.stringify(operation.error));
       }
       throw new Error("Nenhum vídeo foi gerado");
     }
@@ -97,8 +97,8 @@ export async function generateVideo(params: GenerateVideoParams) {
       uri: finalUrl,
     };
   } else {
-    if (operation.error?.message) {
-      throw new Error(operation.error.message);
+    if (operation.error) {
+      throw new Error(typeof operation.error === 'string' ? operation.error : JSON.stringify(operation.error));
     }
     throw new Error("Nenhum vídeo foi gerado");
   }
