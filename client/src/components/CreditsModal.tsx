@@ -41,12 +41,6 @@ export function CreditsModal({ open, onOpenChange }: CreditsModalProps) {
                   : "border-border/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 hover:border-indigo-400/80 hover:shadow-lg hover:shadow-indigo-500/10"
               } p-5 flex flex-col h-full group`}
             >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg shadow-indigo-500/50">
-                  ⭐ Popular
-                </div>
-              )}
-
               <div className="mb-4">
                 <div className="text-3xl font-bold text-indigo-300 mb-1">{plan.credits}</div>
                 <p className="text-xs text-muted-foreground">Créditos</p>
