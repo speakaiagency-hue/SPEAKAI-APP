@@ -108,7 +108,7 @@ export default function Home() {
         <div className="relative z-10 max-w-3xl mx-auto px-4">
           <h1 className="text-5xl md:text-6xl font-heading font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-foreground/60">
             Crie seu mundo digital com <br />
-            <span className="text-primary">Inteligência Artificial</span>
+            <span className="text-primary">Avatares Inteligentes</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Uma suite completa de ferramentas criativas potencializadas por IA. 
@@ -116,7 +116,6 @@ export default function Home() {
           </p>
         </div>
       </section>
-
       {/* Modules Grid */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
         {modules.map((module) => (
@@ -146,7 +145,6 @@ export default function Home() {
           </Link>
         ))}
       </section>
-
       {/* Prompts Library Section */}
       <section className="space-y-6 mt-16 pt-12 border-t border-border/30">
         <div className="text-center space-y-2">
