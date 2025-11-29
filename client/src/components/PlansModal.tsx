@@ -94,7 +94,7 @@ export function PlansModal({ open, onOpenChange }: PlansModalProps) {
         <DialogHeader className="text-center space-y-4 pb-6">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Sparkles className="w-6 h-6 text-indigo-400 animate-pulse" />
-            <DialogTitle className="text-4xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">Nossos Planos</DialogTitle>
+            <DialogTitle className="text-4xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">Cresça com o plano ideal</DialogTitle>
             <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
           </div>
           <p className="text-muted-foreground text-lg text-center">O plano certo, no tempo certo — aqui e agora</p>
