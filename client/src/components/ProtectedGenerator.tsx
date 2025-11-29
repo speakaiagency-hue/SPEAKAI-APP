@@ -27,11 +27,14 @@ export function withMembershipCheck<P extends object>(
         if (response.ok) {
           const data = await response.json();
           if (!data.hasMembership) {
+            console.log("No membership, redirecting to home");
             setLocation("/");
           } else {
+            console.log("✅ Membership granted");
             setHasMembership(true);
           }
         } else {
+          console.error("Membership check failed:", response.status);
           setLocation("/");
         }
       } catch (error) {

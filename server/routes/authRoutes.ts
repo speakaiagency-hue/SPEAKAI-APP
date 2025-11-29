@@ -129,6 +129,12 @@ export async function registerAuthRoutes(app: Express) {
         return res.json({ hasMembership: false });
       }
 
+      // Admin always has access
+      if ((user as any).isAdmin) {
+        console.log(`✅ Admin access granted: ${user.email}`);
+        return res.json({ hasMembership: true });
+      }
+
       // Check if user has any plan purchases in Kiwify
       const hasMembership = await (kiwifyService as any).hasAnyPurchase(user.email);
 

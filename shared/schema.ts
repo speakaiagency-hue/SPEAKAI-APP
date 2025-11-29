@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   name: text("name"),
   avatar: text("avatar"),
   status: text("status").default("active"),
+  isAdmin: boolean("is_admin").default(false),
 });
 
 export const userCredits = pgTable("user_credits", {
