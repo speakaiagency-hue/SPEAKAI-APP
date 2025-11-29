@@ -83,9 +83,7 @@ export function CreditsModal({ open, onOpenChange }: CreditsModalProps) {
         </div>
 
         <div className="border-t border-border/50 pt-6 text-center">
-          <p className="text-xs text-muted-foreground">
-            ✓ Válido por 1 ano • Sem limite de uso • Suporte por email
-          </p>
+          <p className="text-xs text-muted-foreground">✓ Liberdade total de uso • Suporte personalizado</p>
         </div>
 
         <style>{`
