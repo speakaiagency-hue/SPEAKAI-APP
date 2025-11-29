@@ -9,21 +9,24 @@ interface PlansModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const KIWIFY_PLAN_URL = "https://pay.kiwify.com.br/KRTMqIF";
+
 const plans = [
   {
     id: "basico",
     name: "Básico",
-    price: "R$ 29,90",
-    period: "/mês",
-    description: "Perfeito para iniciantes",
+    price: "R$ 19,00",
+    period: "",
+    description: "Perfeito para iniciantes - 190 créditos",
     features: [
       "Chat IA ilimitado",
       "Gerador de Prompt básico",
-      "5 gerações de imagem/mês",
+      "Gerações de imagem",
       "Suporte por email",
     ],
     notIncluded: ["Gerador de vídeo", "Prioridade no suporte"],
     highlighted: false,
+    url: KIWIFY_PLAN_URL,
   },
   {
     id: "pro",
@@ -141,15 +144,21 @@ export function PlansModal({ open, onOpenChange }: PlansModalProps) {
               </div>
 
               <Button
+                onClick={() => {
+                  if ((plan as any).url) {
+                    window.open((plan as any).url, "_blank");
+                  }
+                }}
                 className={`w-full h-11 font-semibold transition-all duration-300 group/btn ${
                   plan.highlighted
                     ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-500 shadow-lg shadow-indigo-500/40 hover:shadow-indigo-500/60 text-white"
                     : "border border-indigo-500/50 text-indigo-300 hover:text-white hover:bg-gradient-to-r hover:from-indigo-600/20 hover:to-purple-600/20 hover:border-indigo-400"
                 }`}
                 variant={plan.highlighted ? "default" : "outline"}
+                data-testid={`button-plan-${plan.id}`}
               >
                 <span className="flex items-center gap-2">
-                  Escolher Plano
+                  Comprar Agora
                   <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
                 </span>
               </Button>

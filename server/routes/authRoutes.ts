@@ -37,24 +37,27 @@ export async function registerAuthRoutes(app: Express) {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create new user with hashed password, email, and name all at once
+      // Create new user with hashed password
       const newUser = await storage.createUser({ 
         username: email, 
-        password: hashedPassword,
-        email,
-        name
+        password: hashedPassword
       });
 
+      // Update user profile with email and name
+      if (newUser) {
+        await storage.updateUserProfile(newUser.id, { email, name });
+      }
+
       // Generate JWT token
-      const token = generateToken(newUser.id, newUser.email || email, newUser.name || name);
+      const token = generateToken(newUser.id, email, name);
 
       res.status(201).json({
         message: "Conta criada com sucesso",
         token,
         user: {
           id: newUser.id,
-          email: newUser.email || email,
-          name: newUser.name || name,
+          email,
+          name,
         },
       });
     } catch (error) {
