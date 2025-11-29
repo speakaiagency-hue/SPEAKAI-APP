@@ -93,29 +93,28 @@ export async function registerAuthRoutes(app: Express) {
         return res.status(400).json({ error: "Email, senha e nome são obrigatórios" });
       }
 
-      // In development, accept the predefined credentials
-      if (process.env.NODE_ENV === "development" && email === "speakai.agency@gmail.com" && password === "Diamante2019@") {
-        // Ensure dev user exists in storage
-        let storedUser = await storage.getUserByUsername(email);
-        if (!storedUser) {
-          storedUser = await storage.createUser({ username: email, password });
-          storedUser = await storage.updateUserProfile(storedUser.id, { name: name || "Speak AI Admin", email }) || storedUser;
-        }
-        
-        const token = generateToken(storedUser.id, storedUser.email || email, storedUser.name || name || "Speak AI Admin");
-        return res.json({
-          token,
-          user: {
-            id: storedUser.id,
-            email: storedUser.email || email,
-            name: storedUser.name || name || "Speak AI Admin",
-            status: storedUser.status,
-          },
-        });
+      // Check if user already exists
+      let existingUser = await storage.getUserByUsername(email);
+      if (existingUser) {
+        return res.status(400).json({ error: "Email já cadastrado" });
       }
 
-      // For production, you would hash the password and save to database
-      res.status(400).json({ error: "Registro apenas disponível em desenvolvimento" });
+      // Create new user
+      const newUser = await storage.createUser({ username: email, password });
+      const updatedUser = await storage.updateUserProfile(newUser.id, { name, email }) || newUser;
+
+      // Generate JWT token
+      const token = generateToken(updatedUser.id, updatedUser.email || email, updatedUser.name || name);
+
+      res.json({
+        token,
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email || email,
+          name: updatedUser.name || name,
+          status: updatedUser.status,
+        },
+      });
     } catch (error) {
       console.error("Register error:", error);
       res.status(500).json({ error: "Erro ao criar conta" });
