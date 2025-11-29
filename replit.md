@@ -47,19 +47,24 @@ Preferred communication style: Simple, everyday language.
 - JWT-based authentication with 7-day token expiration
 - Auth middleware for protected routes
 - Optional auth middleware for public endpoints
+- Bcrypt password hashing (minimum 6 characters)
+- Email-based login/registration
 - Integration with Kiwify for user validation and product access
 
 **Credit System:**
 - User credit tracking (purchased, used, remaining)
-- Credit deduction per operation type (chat, image, prompt, video)
+- Credit deduction per operation type (chat=1, image=5, prompt=2, video=20)
 - Transaction logging for audit trail
 - Insufficient credits handling with proper error responses
+- Credits calculation: R$ value * 10 credits per purchase
+- Example: $19.00 plan = 190 credits
 
 **API Structure:**
 - RESTful API endpoints under `/api` prefix
-- Authentication routes: `/api/auth/login`, `/api/auth/validate-access`
+- Authentication routes: `/api/auth/login`, `/api/auth/register`, `/api/auth/check-membership`
 - Service routes: `/api/chat/*`, `/api/prompt/*`, `/api/image/*`, `/api/video/*`
 - Webhook endpoint: `/api/webhook/kiwify`
+- Credits endpoint: `/api/credits/balance`
 
 **Service Layer Pattern:**
 - Separate service files for each AI capability
@@ -87,11 +92,7 @@ Preferred communication style: Simple, everyday language.
 - Schema-first approach with automatic TypeScript types
 - Easy migration management
 - Neon serverless PostgreSQL for zero-management production database
-
-**Cons:**
-- In-memory storage loses data on restart in dev mode
-- Need to ensure proper connection pooling for production
-- Webhook replay protection not fully implemented
+- Bcrypt password hashing for security
 
 ## External Dependencies
 
@@ -99,7 +100,6 @@ Preferred communication style: Simple, everyday language.
 - Primary AI provider for all generation tasks
 - Models used:
   - `gemini-2.5-flash`: Chat, prompt generation, image generation
-  - `gemini-2.5-flash-image`: Image generation
   - `veo-3.1-generate-preview`: Video generation
 - API key stored in environment variable `GEMINI_API_KEY`
 - Streaming responses for chat interface
@@ -111,21 +111,26 @@ Preferred communication style: Simple, everyday language.
 - Credit allocation based on purchase value
 - Signature verification for webhook security (KIWIFY_WEBHOOK_SECRET)
 - Product-based access control for members area
+- **Basic Plan Link:** https://pay.kiwify.com.br/KRTMqIF ($19.00 = 190 credits)
 
 **Third-Party Libraries:**
 - @radix-ui: Accessible component primitives for UI
 - axios: HTTP client for API requests
 - jsonwebtoken: JWT token generation and verification
-- multer: File upload handling (if needed for images/videos)
-- express-rate-limit: API rate limiting protection
-- connect-pg-simple: PostgreSQL session store
-- Various development tools (ESLint, Prettier, TypeScript)
+- bcrypt: Password hashing
+- pg: PostgreSQL driver
+- drizzle-orm: ORM for database queries
+- esbuild: Server bundle building (production dependency)
+- vite: Client bundle building (production dependency)
 
 **Environment Configuration:**
 - `DATABASE_URL`: PostgreSQL connection string (Neon)
 - `GEMINI_API_KEY`: Google Gemini API access
-- `JWT_SECRET`: Token signing key (production should use secure random)
+- `JWT_SECRET`: Token signing key (must be set in production)
 - `KIWIFY_WEBHOOK_SECRET`: Webhook signature validation
+- `KIWIFY_CLIENT_SECRET`: Kiwify API authentication
+- `KIWIFY_CLIENT_ID`: Kiwify API authentication
+- `KIWIFY_ACCOUNT_ID`: Kiwify account identifier
 - `NODE_ENV`: Environment flag (development/production)
 
 **Deployment Considerations:**
@@ -135,3 +140,31 @@ Preferred communication style: Simple, everyday language.
 - CORS configuration for cross-origin requests
 - Rate limiting to prevent abuse
 - Error handling with user-friendly messages in Portuguese
+- Build command: `npm ci && node script/build.cjs`
+- Start command: `npm start`
+- Node.js version: 22.16.0+
+
+## Security Implementation
+
+**Password Security:**
+- Bcrypt hashing with salt rounds
+- Minimum 6 character requirement
+- Passwords never stored in plain text
+- Password comparison always uses bcrypt.compare()
+
+**JWT Tokens:**
+- 7-day expiration time
+- Signed with JWT_SECRET
+- Used for all protected API routes
+- Token refresh not required (use expiry for logout)
+
+**Database Security:**
+- SSL connections in production (DATABASE_URL)
+- Connection pooling with pg
+- Prepared statements via Drizzle ORM
+- No raw SQL queries
+
+**API Security:**
+- Webhook signature verification for Kiwify
+- Auth middleware on protected routes
+- HMAC-SHA256 signature validation for webhooks
