@@ -110,10 +110,7 @@ export default function Home() {
             Crie seu mundo com <br />
             <span className="text-primary">Avatares Inteligentes</span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Uma suite completa de ferramentas criativas potencializadas por IA. 
-            Gere textos, imagens, vídeos e otimize seus prompts em um único lugar.
-          </p>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">Transforme fotos em vídeos, crie avatares exclusivos e explore infinitas possibilidades criativas com IA.</p>
         </div>
       </section>
       {/* Modules Grid */}
