@@ -177,9 +177,7 @@ export function PlansModal({ open, onOpenChange }: PlansModalProps) {
         </div>
 
         <div className="border-t border-border/50 pt-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            ✓ Período de teste gratuito de 7 dias • Cancele a qualquer momento • Sem compromisso
-          </p>
+          <p className="text-sm text-muted-foreground">✓ Comece agora • Planos simples e transparentes • Liberdade para evoluir</p>
         </div>
 
         <style>{`
