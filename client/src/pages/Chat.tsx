@@ -125,7 +125,6 @@ function ChatComponent() {
             <span className="p-2 rounded-lg bg-primary/10 text-primary"><Bot className="w-6 h-6" /></span>
             Chat IA
           </h1>
-          <p className="text-muted-foreground">Converse com nossa IA avançada.</p>
         </div>
         <div className="flex items-center gap-3">
           <div 
