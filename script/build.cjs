@@ -1,64 +1,27 @@
 #!/usr/bin/env node
-const fs = require("fs");
+const { execSync } = require("child_process");
+const { rmSync } = require("fs");
 const path = require("path");
 
 async function buildAll() {
   try {
-    // Dynamically import ESM modules
-    const { build: esbuild } = await import("esbuild");
-    const { build: viteBuild } = await import("vite");
-    const { rm, readFile } = await import("fs/promises");
+    // Clean dist
+    console.log("🧹 Cleaning dist...");
+    rmSync(path.join(process.cwd(), "dist"), { recursive: true, force: true });
 
-    const allowlist = [
-      "@google/genai",
-      "@neondatabase/serverless",
-      "axios",
-      "bcrypt",
-      "connect-pg-simple",
-      "date-fns",
-      "drizzle-orm",
-      "drizzle-zod",
-      "express",
-      "express-session",
-      "jsonwebtoken",
-      "memorystore",
-      "pg",
-      "zod",
-      "zod-validation-error",
-    ];
+    // Build client with vite
+    console.log("🔨 Building client...");
+    execSync("npx vite build", { stdio: "inherit", cwd: process.cwd() });
 
-    await rm("dist", { recursive: true, force: true });
-
-    console.log("🔨 building client...");
-    await viteBuild();
-
-    console.log("🔨 building server...");
-    const pkg = JSON.parse(
-      await readFile(path.join(process.cwd(), "package.json"), "utf-8")
-    );
-    const allDeps = [
-      ...Object.keys(pkg.dependencies || {}),
-      ...Object.keys(pkg.devDependencies || {}),
-    ];
-    const externals = allDeps.filter((dep) => !allowlist.includes(dep));
-
-    await esbuild({
-      entryPoints: ["server/index.ts"],
-      platform: "node",
-      bundle: true,
-      format: "cjs",
-      outfile: "dist/index.cjs",
-      define: {
-        "process.env.NODE_ENV": '"production"',
-      },
-      minify: true,
-      external: externals,
-      logLevel: "info",
-    });
+    // Build server with esbuild
+    console.log("🔨 Building server...");
+    const esbuildCmd = `npx esbuild server/index.ts --bundle --format=cjs --outfile=dist/index.cjs --define:process.env.NODE_ENV=\\"production\\" --minify --platform=node --external:@google/genai --external:@neondatabase/serverless --external:bcrypt --external:connect-pg-simple --external:date-fns --external:drizzle-orm --external:drizzle-zod --external:express --external:express-session --external:jsonwebtoken --external:memorystore --external:pg --external:zod --external:zod-validation-error`;
+    
+    execSync(esbuildCmd, { stdio: "inherit", cwd: process.cwd() });
 
     console.log("✅ Build complete!");
   } catch (err) {
-    console.error("❌ Build failed:", err);
+    console.error("❌ Build failed:", err.message);
     process.exit(1);
   }
 }
