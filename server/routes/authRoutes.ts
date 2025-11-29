@@ -37,20 +37,24 @@ export async function registerAuthRoutes(app: Express) {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create new user with hashed password
-      const newUser = await storage.createUser({ username: email, password: hashedPassword });
-      const updatedUser = await storage.updateUserProfile(newUser.id, { name, email }) || newUser;
+      // Create new user with hashed password, email, and name all at once
+      const newUser = await storage.createUser({ 
+        username: email, 
+        password: hashedPassword,
+        email,
+        name
+      });
 
       // Generate JWT token
-      const token = generateToken(updatedUser.id, updatedUser.email || email, updatedUser.name || name);
+      const token = generateToken(newUser.id, newUser.email || email, newUser.name || name);
 
       res.status(201).json({
         message: "Conta criada com sucesso",
         token,
         user: {
-          id: updatedUser.id,
-          email: updatedUser.email || email,
-          name: updatedUser.name || name,
+          id: newUser.id,
+          email: newUser.email || email,
+          name: newUser.name || name,
         },
       });
     } catch (error) {
@@ -73,15 +77,29 @@ export async function registerAuthRoutes(app: Express) {
       const user = await storage.getUserByUsername(email);
 
       if (!user || !user.password) {
+        console.log("❌ Login failed - user or password missing:", { 
+          userExists: !!user, 
+          hasPassword: !!user?.password,
+          userPassword: user?.password ? "EXISTS" : "MISSING"
+        });
         return res.status(401).json({ error: "Email ou senha inválidos" });
       }
 
       // Compare passwords
-      const passwordMatch = await bcrypt.compare(password, user.password);
-
-      if (!passwordMatch) {
+      let passwordMatch = false;
+      try {
+        passwordMatch = await bcrypt.compare(password, user.password);
+      } catch (error) {
+        console.error("❌ bcrypt.compare error:", error);
         return res.status(401).json({ error: "Email ou senha inválidos" });
       }
+
+      if (!passwordMatch) {
+        console.log("❌ Password mismatch for user:", email);
+        return res.status(401).json({ error: "Email ou senha inválidos" });
+      }
+      
+      console.log("✅ Login successful for user:", email);
 
       // Generate JWT token
       const token = generateToken(user.id, user.email || email, user.name || undefined);
