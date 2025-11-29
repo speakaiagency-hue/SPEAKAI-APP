@@ -95,14 +95,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background text-foreground transition-colors duration-300 relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 -z-10 animated-background"></div>
-      
-      {/* Decorative Orbs */}
+      {/* Decorative Animated Orbs */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-r from-cyan-500/20 to-blue-500/15 rounded-full filter blur-3xl animated-orb"></div>
-        <div className="absolute -bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-purple-500/20 to-indigo-500/15 rounded-full filter blur-3xl animated-orb" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-gradient-to-r from-blue-500/15 to-violet-500/15 rounded-full filter blur-3xl animated-orb" style={{animationDelay: '4s'}}></div>
+        {/* Cyan-Blue Orb */}
+        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full filter blur-3xl opacity-20 animate-pulse"></div>
+        
+        {/* Purple-Indigo Orb */}
+        <div className="absolute -bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full filter blur-3xl opacity-20 animate-pulse" style={{animationDelay: '0.5s'}}></div>
+        
+        {/* Blue-Violet Orb */}
+        <div className="absolute top-1/2 -left-20 w-80 h-80 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full filter blur-3xl opacity-15 animate-pulse" style={{animationDelay: '1s'}}></div>
       </div>
 
       {/* Desktop Sidebar */}
