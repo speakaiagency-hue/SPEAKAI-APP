@@ -55,23 +55,20 @@ export async function registerWebhookRoutes(app: Express, storage: IStorage, kiw
   app.get("/api/credits/balance", authMiddleware, async (req: Request, res: Response) => {
     try {
       const user = await storage.getUser(req.user!.id);
-      if (!user || !user.email) {
-        return res.json({ credits: null });
+      if (!user) {
+        return res.json({ credits: 0 });
       }
 
-      // Check if user has membership (any Kiwify purchase)
-      const hasMembership = await kiwifyService.hasAnyPurchase(user.email);
-
-      if (!hasMembership) {
-        return res.json({ credits: null });
-      }
-
-      // Get credits from storage (only if has membership)
+      // Get credits from storage directly (no Kiwify dependency)
       const credits = await (storage as any).getUserCredits?.(req.user!.id);
-      res.json({ credits: credits?.credits ?? null });
+      
+      // Return credits if user has any, otherwise 0
+      const creditBalance = credits?.credits ?? 0;
+      console.log(`✅ Credits balance for user ${req.user!.id}: ${creditBalance}`);
+      res.json({ credits: creditBalance });
     } catch (error) {
       console.error("Error fetching credits:", error);
-      res.json({ credits: null });
+      res.json({ credits: 0 });
     }
   });
 }
