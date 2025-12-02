@@ -129,13 +129,13 @@ export async function registerAuthRoutes(app: Express) {
         return res.json({ hasMembership: false });
       }
 
-      // Admin always has access
-      if ((user as any).isAdmin) {
-        console.log(`✅ Admin access granted: ${user.email}`);
+      // Check if user has any plan purchases in Kiwify or has credits
+      const credits = await storage.getUserCredits(user.id);
+      if (credits && credits.credits > 0) {
+        console.log(`✅ User has credits: ${user.email}`);
         return res.json({ hasMembership: true });
       }
 
-      // Check if user has any plan purchases in Kiwify
       const hasMembership = await (kiwifyService as any).hasAnyPurchase(user.email);
 
       res.json({ hasMembership });
