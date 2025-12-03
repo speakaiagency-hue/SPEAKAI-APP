@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Image as ImageIcon, Download, Maximize2, RefreshCw, Layers } from "lucide-react";
+import { Image as ImageIcon, Download, Maximize2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,14 +17,6 @@ function ImagePageComponent() {
   const [prompt, setPrompt] = useState("");
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [aspectRatio, setAspectRatio] = useState("16:9");
-
-  // Mock images for demo
-  const mockImages = [
-    "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    "https://images.unsplash.com/photo-1614728853913-1e221134d341?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-  ];
 
   const handleGenerate = async () => {
     if (!prompt) {
@@ -64,13 +56,17 @@ function ImagePageComponent() {
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="flex flex-col items-center text-center gap-2 mb-8">
         <h1 className="text-3xl font-heading font-bold flex items-center gap-2">
-          <span className="p-2 rounded-lg bg-purple-500/10 text-purple-500"><ImageIcon className="w-6 h-6" /></span>
+          <span className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
+            <ImageIcon className="w-6 h-6" />
+          </span>
           Geração de Imagem
         </h1>
-        <p className="text-muted-foreground">Descreva o que você quer ver e transformaremos em arte.</p>
+        <p className="text-muted-foreground">
+          Descreva o que você quer ver e transformaremos em arte.
+        </p>
       </div>
 
-      {/* Main Input Card - Matches Screenshot */}
+      {/* Main Input Card */}
       <div className="space-y-4">
         <div className="bg-[#0f1117] p-1 rounded-xl border border-[#1f2937] shadow-2xl">
           <Textarea 
@@ -118,26 +114,34 @@ function ImagePageComponent() {
             </span>
           ) : (
             <>
-              <span className="text-sm font-semibold px-2 py-1 rounded bg-white/20 border border-white/30">7 ⚡</span>
+              <span className="text-sm font-semibold px-2 py-1 rounded bg-white/20 border border-white/30">
+                {IMAGE_COST} ⚡
+              </span>
               <span>Gerar Imagem</span>
             </>
           )}
         </Button>
       </div>
 
-      {/* Gallery Section - Displayed below */}
+      {/* Gallery Section */}
       {generatedImages.length > 0 && (
         <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 mt-12">
           {generatedImages.map((src, i) => (
             <div key={i} className="group relative aspect-video rounded-xl overflow-hidden border border-[#2d3748] shadow-xl bg-[#1a1d24]">
-              <img src={src} alt={`Generated ${i}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              <img 
+                src={src} 
+                alt={`Generated ${i}`} 
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+              />
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-sm">
                 <Button size="icon" variant="secondary" className="rounded-full h-12 w-12">
                   <Maximize2 className="w-5 h-5" />
                 </Button>
-                <Button size="icon" variant="secondary" className="rounded-full h-12 w-12">
-                  <Download className="w-5 h-5" />
-                </Button>
+                <a href={src} download={`imagem-${i}.png`}>
+                  <Button size="icon" variant="secondary" className="rounded-full h-12 w-12">
+                    <Download className="w-5 h-5" />
+                  </Button>
+                </a>
               </div>
             </div>
           ))}
