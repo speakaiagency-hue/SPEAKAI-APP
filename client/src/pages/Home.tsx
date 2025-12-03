@@ -26,10 +26,10 @@ export default function Home() {
     },
     {
       id: "2",
-      title: "Análise de Dados",
+      title: "Noite Parisiense em Quatro Rodas",
       prompt:
-        "Sou um analista de dados. Preciso de uma query SQL otimizada para extrair os top 10 produtos mais vendidos do último mês, agrupados por categoria, com suas respectivas taxas de crescimento em relação ao mês anterior.",
-      video: "https://www.w3schools.com/html/movie.mp4",
+        "Uma mulher de 32 anos, alta e elegante, com cabelos castanhos ondulados e pele bronzeada, dirige um carro esportivo pelas ruas movimentadas de Nova York à noite. Usando óculos escuros estilosos e brincos grandes, transmite confiança e sofisticação. O reflexo das luzes de neon nos prédios cria um contraste vibrante com o interior luxuoso do veículo. Ela segura o volante com firmeza, enquanto sorri discretamente, aproveitando a energia da cidade que nunca dorme.",
+      video: "https://speakia.ai/wp-content/uploads/2025/12/gcnx0c60umv7_download.mp4",
     },
     {
       id: "3",
