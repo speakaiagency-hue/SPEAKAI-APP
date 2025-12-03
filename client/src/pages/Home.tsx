@@ -179,11 +179,11 @@ export default function Home() {
                   src={item.video}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                   autoPlay
-                  muted
+                                   muted
                   loop
                   playsInline
                   onContextMenu={(e) => e.preventDefault()}
-                                />
+                />
               </div>
 
               <CardHeader className="pb-2">
@@ -191,7 +191,7 @@ export default function Home() {
               </CardHeader>
 
               <CardContent className="flex-1 flex flex-col">
-                <p className="text-xs text-gray-400 leading-relaxed flex-1 mb-4 line-clamp-3">
+                <p className="text-xs text-gray-400 leading-relaxed flex-1 mb-4">
                   {item.prompt}
                 </p>
                 <Button
