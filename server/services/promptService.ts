@@ -1,17 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
+import { getGeminiKeyRotator } from "../utils/apiKeyRotator";
 
 export async function createPromptService() {
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY environment variable is not configured");
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
+  const rotator = getGeminiKeyRotator();
 
   return {
     async generateCreativePrompt(userText: string): Promise<string> {
-      try {
+      return await rotator.executeWithRotation(async (apiKey) => {
+        const ai = new GoogleGenAI({ apiKey });
+        
         const response = await ai.models.generateContent({
           model: "gemini-2.5-flash",
           config: {
@@ -22,10 +19,7 @@ export async function createPromptService() {
         });
 
         return response.text || "Não foi possível gerar o prompt.";
-      } catch (error) {
-        console.error("Error generating prompt:", error);
-        throw error;
-      }
+      });
     },
   };
 }

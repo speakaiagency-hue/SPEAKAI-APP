@@ -1,4 +1,5 @@
 import { GoogleGenAI, VideoGenerationReferenceType } from "@google/genai";
+import { getGeminiKeyRotator } from "../utils/apiKeyRotator";
 
 export interface GenerateVideoParams {
   prompt: string;
@@ -11,13 +12,10 @@ export interface GenerateVideoParams {
 }
 
 export async function generateVideo(params: GenerateVideoParams) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const rotator = getGeminiKeyRotator();
   
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY environment variable is not configured");
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
+  return await rotator.executeWithRotation(async (apiKey) => {
+    const ai = new GoogleGenAI({ apiKey });
 
   const config: any = {
     numberOfVideos: 1,
@@ -102,4 +100,5 @@ export async function generateVideo(params: GenerateVideoParams) {
     }
     throw new Error("Nenhum vídeo foi gerado");
   }
+  });
 }

@@ -63,7 +63,7 @@ export default function Login() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
             {/* Email Field */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
@@ -73,12 +73,14 @@ export default function Login() {
                 <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   required
+                  autoComplete="email"
                   className="pl-10 border-border/50 bg-secondary/30 focus:ring-indigo-500/30"
                 />
               </div>
@@ -93,12 +95,14 @@ export default function Login() {
                 <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
                   required
+                  autoComplete="current-password"
                   className="pl-10 pr-10 border-border/50 bg-secondary/30 focus:ring-indigo-500/30"
                 />
                 <button

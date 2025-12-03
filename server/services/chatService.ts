@@ -1,12 +1,9 @@
 import { GoogleGenAI, Chat, Content } from "@google/genai";
+import { getGeminiKeyRotator } from "../utils/apiKeyRotator";
 
 export async function createChatService() {
-  const apiKey = process.env.GEMINI_API_KEY || (process.env.NODE_ENV === "development" ? "mock_gemini_key" : "");
-
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY environment variable is not configured");
-  }
-
+  const rotator = getGeminiKeyRotator();
+  const apiKey = rotator.getApiKey();
   const ai = new GoogleGenAI({ apiKey });
 
   return {
@@ -27,16 +24,17 @@ export async function createChatService() {
     },
 
     async generateTitle(text: string): Promise<string> {
-      try {
+      return await rotator.executeWithRotation(async (apiKey) => {
+        const ai = new GoogleGenAI({ apiKey });
         const response = await ai.models.generateContent({
           model: "gemini-2.5-flash",
           contents: `Analise a primeira mensagem de uma conversa e crie um título curto e temático (máximo 4 palavras). Mensagem do usuário: "${text}". Responda apenas com o título, sem nenhuma outra formatação ou texto.`,
         });
         return (response.text || "").trim().replace(/"/g, "") || text.split(" ").slice(0, 5).join(" ");
-      } catch (error) {
+      }).catch((error) => {
         console.error("Failed to generate title:", error);
         return text.split(" ").slice(0, 5).join(" ");
-      }
+      });
     },
   };
 }
