@@ -33,31 +33,31 @@ export default function Home() {
     },
     {
       id: "3",
-      title: "Copy para Email Marketing",
+      title: "A Voz da Confiança na Medicina",
       prompt:
-        "Escreva uma copy de email para uma campanha de Black Friday. O produto é um curso online sobre fotografia profissional. Deve ter: subject line impactante, apresentação do desconto, benefícios do curso, urgência e CTA claro. Máximo 200 palavras.",
-      video: "https://www.w3schools.com/html/mov_bbb.mp4",
+        "Um médico de 35 anos, alto e de postura firme, veste um jaleco branco impecável enquanto percorre os corredores de um hospital moderno. Seus cabelos curtos e bem arrumados refletem disciplina, e o olhar seguro transmite confiança. Carregando um estetoscópio no pescoço e uma prancheta com anotações, ele demonstra dedicação e foco. Ao fundo, colegas e pacientes circulam, mas sua presença se destaca pela serenidade e pela responsabilidade de quem tem a missão de cuidar e salvar vidas.",
+      video: "https://speakia.ai/wp-content/uploads/2025/12/cmst2m3osuub_download.mp4",
     },
     {
       id: "4",
-      title: "Brainstorm de Conteúdo",
+      title: "Força e Amor em Movimento",
       prompt:
-        "Me sugira 10 ideias criativas de conteúdo para um blog sobre inteligência artificial e produtividade. Cada ideia deve ter: título, tipo de conteúdo (artigo/vídeo/infográfico), público-alvo e palavra-chave principal.",
-      video: "https://www.w3schools.com/html/movie.mp4",
+        "Um casal jovem, ambos com cerca de 28 anos, treina lado a lado em uma academia moderna e bem iluminada. Ele, alto e definido, veste uma regata preta e segura halteres com firmeza. Ela, magra e atlética, com cabelo preso em um coque, usa top esportivo rosa e leggings cinza, concentrada em seus agachamentos. Entre risadas e olhares cúmplices, eles se apoiam mutuamente, transmitindo energia e parceria. Ao fundo, espelhos refletem a intensidade do treino e máquinas de musculação completam o ambiente. A cena mistura disciplina, estilo e a força de compartilhar objetivos juntos.",
+      video: "https://speakia.ai/wp-content/uploads/2025/12/1jlkbvi6sawj_download.mp4",
     },
     {
       id: "5",
-      title: "Descrição de Produto",
+      title: "Escuta que Transforma",
       prompt:
-        "Crie uma descrição detalhada e persuasiva para um produto de fone de ouvido wireless premium. Inclua: características técnicas, benefícios para o usuário, diferenciais da marca e uma chamada para ação. Máximo 150 palavras.",
-      video: "https://www.w3schools.com/html/mov_bbb.mp4",
+        "Uma psicóloga de 29 anos, com postura calma e acolhedora, recebe um paciente em seu consultório moderno e iluminado. Ela veste roupas discretas e elegantes, com óculos de armação fina e um sorriso sereno que transmite confiança. Sentada em uma poltrona confortável, segura um bloco de anotações enquanto escuta atentamente. O ambiente é decorado com plantas, livros e uma iluminação suave, criando uma atmosfera de tranquilidade e segurança. Sua presença inspira acolhimento e profissionalismo, como alguém dedicada a ajudar pessoas a encontrarem equilíbrio e bem-estar.",
+      video: "https://speakia.ai/wp-content/uploads/2025/12/dpvzgpzancy0_download.mp4",
     },
     {
       id: "6",
-      title: "Plano de Conteúdo Social",
+      title: "A Autoridade da Justiça",
       prompt:
-        "Desenvolva um plano de conteúdo para Instagram de um personal trainer. Sugestões de posts para a semana: segunda, quarta, sexta e domingo. Cada post deve incluir: tema, tipo de conteúdo, hashtags relevantes e horário sugerido.",
-      video: "https://www.w3schools.com/html/movie.mp4",
+        "Um juiz de 48 anos, de postura firme e olhar atento, está sentado à frente de um tribunal imponente. Vestindo uma toga preta tradicional, transmite autoridade e respeito. Em suas mãos repousa um martelo de madeira, símbolo de sua função, enquanto documentos e processos estão organizados sobre a mesa. O ambiente é solene, com bandeiras oficiais ao fundo e pessoas aguardando em silêncio. Sua voz ecoa pelo salão, trazendo decisões que podem mudar vidas e definir destinos, reforçando o peso e a importância da justiça.",
+      video: "https://speakia.ai/wp-content/uploads/2025/12/d354qjq08um2_download.mp4",
     },
   ];
 
