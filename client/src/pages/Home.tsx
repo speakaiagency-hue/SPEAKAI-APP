@@ -19,10 +19,10 @@ export default function Home() {
   const prompts = [
     {
       id: "1",
-      title: "Roteiro para Video Marketing",
+      title: "Elegância Rosa nas Ruas de Paris",
       prompt:
-        "Você é um roteirista expert em vídeos de marketing. Crie um roteiro de 30 segundos para um produto de software que soluciona problemas de produtividade. Inclua: hook nos primeiros 3 segundos, problema, solução e call-to-action.",
-      video: "https://www.w3schools.com/html/mov_bbb.mp4",
+        "Uma mulher de 25 anos, magra e com corpo definido, exibe um estilo único ao caminhar pelas ruas charmosas de Paris. Seus cabelos rosa vibrantes contrastam com mechas pretas, criando um visual ousado e moderno. Carregando bolsas elegantes e adornada com cordões delicados, ela transmite confiança e autenticidade. Entre cafés parisienses e fachadas históricas, sua presença ilumina a cena, como se fosse parte viva da própria cidade.",
+      video: "https://speakia.ai/wp-content/uploads/2025/12/g695xbvax5oi_download.mp4",
     },
     {
       id: "2",
