@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Save, Wand2, RefreshCw, CheckCircle2, Sparkles } from "lucide-react";
+import { Copy, Save, Wand2, RefreshCw, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,7 @@ function PromptComponent() {
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [qualityScore, setQualityScore] = useState(0);
   const [input, setInput] = useState("");
-  
+
   const handleGenerate = async () => {
     if (!input.trim()) {
       toast({ title: "Por favor, descreva o conteúdo primeiro", variant: "destructive" });
@@ -56,16 +56,20 @@ function PromptComponent() {
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="flex flex-col items-center text-center gap-2 mb-8">
         <h1 className="text-3xl font-heading font-bold flex items-center gap-2">
-          <span className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500"><Wand2 className="w-6 h-6" /></span>
+          <span className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
+            <Wand2 className="w-6 h-6" />
+          </span>
           Gerador de Prompt
         </h1>
-        <p className="text-muted-foreground">Descreva o que você precisa e deixe nossa IA criar o prompt perfeito.</p>
+        <p className="text-muted-foreground">
+          Descreva o que você precisa e deixe nossa IA criar o prompt perfeito.
+        </p>
       </div>
 
-      {/* Main Input Area - Matches Screenshot */}
+      {/* Main Input Area */}
       <div className="space-y-4">
         <div className="relative bg-[#0f1117] p-1 rounded-xl border border-[#1f2937] shadow-2xl">
-          <Textarea 
+          <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Descreva o conteúdo ou envie uma imagem acima para gerar automaticamente..."
@@ -77,7 +81,7 @@ function PromptComponent() {
           </div>
         </div>
 
-        <Button 
+        <Button
           className="w-full bg-[#6366f1] hover:bg-[#5558dd] text-white font-bold h-14 rounded-xl text-lg shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:scale-[1.01] flex items-center justify-center gap-3"
           onClick={handleGenerate}
           disabled={isGenerating}
@@ -87,18 +91,15 @@ function PromptComponent() {
               <RefreshCw className="w-5 h-5 animate-spin" /> Gerando...
             </span>
           ) : (
-            <>
-              <span className="text-xs font-semibold px-2 py-1 rounded bg-white/20 border border-white/30">2 ⚡</span>
-              <span>Gerar Prompt</span>
-            </>
+            <span>Gerar Prompt</span>
           )}
         </Button>
       </div>
 
-      {/* Output Section - Visible after generation */}
+      {/* Output Section */}
       {generatedPrompt && (
         <Card className="border-border/50 shadow-lg bg-[#0f1117]/50 backdrop-blur-sm relative overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-500">
-            {qualityScore > 0 && (
+          {qualityScore > 0 && (
             <div className="absolute top-0 right-0 p-4 z-10">
               <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20 px-3 py-1">
                 Qualidade: {qualityScore}/100
