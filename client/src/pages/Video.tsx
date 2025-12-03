@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getAuthHeader } from "@/lib/auth";
 import { withMembershipCheck } from "@/components/ProtectedGenerator";
 
-const VIDEO_COST = 20;
+const VIDEO_COST = 40;
 
 interface ImageData {
   base64: string;
