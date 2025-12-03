@@ -5,11 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-// Import videos (substitua pelos seus arquivos reais .mp4 em @assets/generated_videos/)
-import chatVideo from "@assets/generated_videos/chat_ai.mp4";
-import promptVideo from "@assets/generated_videos/prompt_ai.mp4";
-import imageVideo from "@assets/generated_videos/image_ai.mp4";
-import videoModule from "@assets/generated_videos/video_ai.mp4";
+// Import assets
+import chatImg from "@assets/generated_images/abstract_ai_chat_concept.png";
+import promptImg from "@assets/generated_images/creative_writing_prompt_concept.png";
+import imageImg from "@assets/generated_images/digital_art_generation_concept.png";
+import videoImg from "@assets/generated_images/video_production_concept.png";
 
 export default function Home() {
   const { toast } = useToast();
@@ -67,7 +67,7 @@ export default function Home() {
       description: "Converse com uma inteligência artificial avançada com contexto e memória.",
       href: "/chat",
       icon: MessageSquare,
-      video: chatVideo,
+      image: chatImg,
       color: "text-blue-500",
       bg: "bg-blue-500/10",
     },
@@ -76,7 +76,7 @@ export default function Home() {
       description: "Crie prompts perfeitos para coding, marketing e design com templates prontos.",
       href: "/prompt",
       icon: Type,
-      video: promptVideo,
+      image: promptImg,
       color: "text-orange-500",
       bg: "bg-orange-500/10",
     },
@@ -85,7 +85,7 @@ export default function Home() {
       description: "Transforme texto em imagens incríveis com estilos variados e alta resolução.",
       href: "/image",
       icon: ImageIcon,
-      video: imageVideo,
+      image: imageImg,
       color: "text-purple-500",
       bg: "bg-purple-500/10",
     },
@@ -94,7 +94,7 @@ export default function Home() {
       description: "Crie vídeos curtos e storyboards a partir de descrições textuais.",
       href: "/video",
       icon: Video,
-      video: videoModule,
+      image: videoImg,
       color: "text-red-500",
       bg: "bg-red-500/10",
     },
@@ -122,12 +122,9 @@ export default function Home() {
             <Card className="h-full overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500">
               <div className="relative h-48 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent z-10" />
-                <video
-                  src={module.video}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
+                <img
+                  src={module.image}
+                  alt={module.title}
                   className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className={`absolute top-4 left-4 p-3 rounded-xl ${module.bg} backdrop-blur-md z-20 border border-white/10`}>
@@ -156,12 +153,12 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {prompts.map((item) => (
-                        <Card key={item.id} className="bg-[#1a1d24] border-[#2d3748] hover:border-primary/50 transition-all duration-300 flex flex-col overflow-hidden">
+            <Card key={item.id} className="bg-[#1a1d24] border-[#2d3748] hover:border-primary/50 transition-all duration-300 flex flex-col overflow-hidden">
               {/* Image Preview */}
               <div className="h-40 overflow-hidden bg-[#0f1117]">
                 <img
                   src={item.image}
-                  alt={item.title}
+                                   alt={item.title}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                 />
               </div>
