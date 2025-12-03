@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { getAuthHeader } from "@/lib/auth";
 import { withMembershipCheck } from "@/components/ProtectedGenerator";
 
-const IMAGE_COST = 5;
+const IMAGE_COST = 7;
 
 function ImagePageComponent() {
   const { toast } = useToast();
