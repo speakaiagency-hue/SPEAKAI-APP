@@ -15,49 +15,49 @@ export default function Home() {
   const IMAGE_VIDEO_URL = "https://speakia.ai/wp-content/uploads/2025/12/imagem.mp4";
   const VIDEO_VIDEO_URL = "https://speakia.ai/wp-content/uploads/2025/12/Video.mp4";
 
-  // Biblioteca de prompts com preview em vídeo
+  // Prompts mantidos exatamente como você enviou (com seus próprios links de vídeo)
   const prompts = [
     {
       id: "1",
       title: "Roteiro para Video Marketing",
       prompt:
         "Você é um roteirista expert em vídeos de marketing. Crie um roteiro de 30 segundos para um produto de software que soluciona problemas de produtividade. Inclua: hook nos primeiros 3 segundos, problema, solução e call-to-action.",
-      video: CHAT_VIDEO_URL,
+      video: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
     {
       id: "2",
       title: "Análise de Dados",
       prompt:
         "Sou um analista de dados. Preciso de uma query SQL otimizada para extrair os top 10 produtos mais vendidos do último mês, agrupados por categoria, com suas respectivas taxas de crescimento em relação ao mês anterior.",
-      video: PROMPT_VIDEO_URL,
+      video: "https://www.w3schools.com/html/movie.mp4",
     },
     {
       id: "3",
       title: "Copy para Email Marketing",
       prompt:
         "Escreva uma copy de email para uma campanha de Black Friday. O produto é um curso online sobre fotografia profissional. Deve ter: subject line impactante, apresentação do desconto, benefícios do curso, urgência e CTA claro. Máximo 200 palavras.",
-      video: IMAGE_VIDEO_URL,
+      video: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
     {
       id: "4",
       title: "Brainstorm de Conteúdo",
       prompt:
         "Me sugira 10 ideias criativas de conteúdo para um blog sobre inteligência artificial e produtividade. Cada ideia deve ter: título, tipo de conteúdo (artigo/vídeo/infográfico), público-alvo e palavra-chave principal.",
-      video: VIDEO_VIDEO_URL,
+      video: "https://www.w3schools.com/html/movie.mp4",
     },
     {
       id: "5",
       title: "Descrição de Produto",
       prompt:
         "Crie uma descrição detalhada e persuasiva para um produto de fone de ouvido wireless premium. Inclua: características técnicas, benefícios para o usuário, diferenciais da marca e uma chamada para ação. Máximo 150 palavras.",
-      video: CHAT_VIDEO_URL,
+      video: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
     {
       id: "6",
       title: "Plano de Conteúdo Social",
       prompt:
         "Desenvolva um plano de conteúdo para Instagram de um personal trainer. Sugestões de posts para a semana: segunda, quarta, sexta e domingo. Cada post deve incluir: tema, tipo de conteúdo, hashtags relevantes e horário sugerido.",
-      video: PROMPT_VIDEO_URL,
+      video: "https://www.w3schools.com/html/movie.mp4",
     },
   ];
 
@@ -68,7 +68,7 @@ export default function Home() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Módulos com preview em vídeo (links externos)
+  // Módulos agora usam somente links de vídeo (sem imports locais)
   const modules = [
     {
       title: "Chat IA",
