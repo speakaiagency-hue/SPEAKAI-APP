@@ -182,9 +182,8 @@ export default function Home() {
                   muted
                   loop
                   playsInline
-                  onContextMenu={(e) => e.preventDefault
-                                      onContextMenu={(e) => e.preventDefault()}
-                />
+                  onContextMenu={(e) => e.preventDefault()}
+                                />
               </div>
 
               <CardHeader className="pb-2">
