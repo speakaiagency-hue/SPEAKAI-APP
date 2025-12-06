@@ -49,7 +49,7 @@ const plans = [
   {
     id: "premium",
     name: "Premium",
-    price: "R$ 19,00",
+    price: "R$ 697,00",
     period: "",
     description: "Para agências e empresas - 190 créditos",
     features: [
