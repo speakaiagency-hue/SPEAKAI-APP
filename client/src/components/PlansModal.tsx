@@ -15,35 +15,36 @@ const plans = [
   {
     id: "basico",
     name: "Básico",
-    price: "R$ 19,00",
+    price: "R$ 97,00",
     period: "",
-    description: "Perfeito para iniciantes - 190 créditos",
+    description: "Perfeito para iniciantes - 150 créditos",
     features: [
       "Chat IA ilimitado",
-      "Gerador de Prompt básico",
+      "Gerador de Prompt",
       "Gerações de imagem",
-      "Suporte por email",
+      "Geração de Vídeos",
+      "Email + WhatsApp",
     ],
-    notIncluded: ["Gerador de vídeo", "Prioridade no suporte"],
+    notIncluded: [],
     highlighted: false,
-    url: "https://pay.kiwify.com.br/LINK-BASICO", // 🔗 link específico do plano Básico
+    url: "https://pay.kiwify.com.br/KRTMqIF", // 🔗 link específico do plano Básico
   },
   {
     id: "pro",
     name: "Pro",
-    price: "R$ 19,00",
+    price: "R$ 197,00",
     period: "",
-    description: "Para profissionais - 190 créditos",
+    description: "Para profissionais - 200 créditos",
     features: [
       "Chat IA ilimitado",
-      "Gerador de Prompt avançado",
+      "Gerador de Prompt",
       "Gerações de imagem",
-      "Suporte prioritário",
-      "Análise de desempenho",
+      "Geração de Vídeos",
+      "Email + WhatsApp",
     ],
     notIncluded: [],
     highlighted: true,
-    url: "https://pay.kiwify.com.br/LINK-PRO", // 🔗 link específico do plano Pro
+    url: "https://pay.kiwify.com.br/q0rFdNB", // 🔗 link específico do plano Pro
   },
   {
     id: "premium",
@@ -52,16 +53,15 @@ const plans = [
     period: "",
     description: "Para agências e empresas - 190 créditos",
     features: [
-      "Tudo do plano Pro",
-      "Gerações de imagem ilimitadas",
-      "Gerações de vídeo ilimitadas",
-      "API dedicada",
-      "Suporte 24/7",
-      "Relatórios personalizados",
+      "Chat IA ilimitado",
+      "Gerador de Prompt",
+      "Gerações de imagem",
+      "Geração de Vídeos",
+      "Email + WhatsApp",
     ],
     notIncluded: [],
     highlighted: false,
-    url: "https://pay.kiwify.com.br/LINK-PREMIUM", // 🔗 link específico do plano Premium
+    url: "https://pay.kiwify.com.br/KFXdvJv", // 🔗 link específico do plano Premium
   },
 ];
 
