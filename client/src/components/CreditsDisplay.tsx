@@ -1,16 +1,21 @@
 import { Coins, AlertCircle, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getAuthHeader } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface CreditsDisplayProps {
   operationCost: number;
   operationName: string;
   creditsAfterOperation?: number;
+  onBuyCredits?: () => void; // 🔑 nova prop para abrir o CreditsModal
 }
 
-export function CreditsDisplay({ operationCost, operationName, creditsAfterOperation }: CreditsDisplayProps) {
+export function CreditsDisplay({
+  operationCost,
+  operationName,
+  creditsAfterOperation,
+  onBuyCredits,
+}: CreditsDisplayProps) {
   const [credits, setCredits] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,21 +48,23 @@ export function CreditsDisplay({ operationCost, operationName, creditsAfterOpera
       {/* Credits Balance - Minimalista */}
       <div className="flex items-center justify-between p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
         <span className="text-xs text-muted-foreground">Disponível</span>
-        <div className={cn(
-          "text-lg font-bold",
-          loading ? "text-gray-500" : hasEnoughCredits ? "text-green-400" : "text-red-400"
-        )}>
+        <div
+          className={cn(
+            "text-lg font-bold",
+            loading ? "text-gray-500" : hasEnoughCredits ? "text-green-400" : "text-red-400"
+          )}
+        >
           {loading ? "..." : credits}
         </div>
       </div>
 
       {/* Operation Cost - Minimalista */}
-      <div className={cn(
-        "flex items-center justify-between p-2 rounded text-xs",
-        hasEnoughCredits 
-          ? "text-blue-400" 
-          : "text-red-400"
-      )}>
+      <div
+        className={cn(
+          "flex items-center justify-between p-2 rounded text-xs",
+          hasEnoughCredits ? "text-blue-400" : "text-red-400"
+        )}
+      >
         <span>Custo {operationName}</span>
         <span className="font-semibold">-{operationCost}</span>
       </div>
@@ -71,16 +78,14 @@ export function CreditsDisplay({ operationCost, operationName, creditsAfterOpera
               Precisa de {operationCost} créditos. Compre mais!
             </div>
           </div>
-          <a
-            href="https://pay.kiwify.com.br/KRTMqIF"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={onBuyCredits} // 🔑 abre o CreditsModal
             className="w-full h-8 text-xs bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-lg flex items-center justify-center gap-1 cursor-pointer"
             data-testid="button-buy-credits"
           >
             <Plus className="w-3 h-3" />
-            Comprar 190 Créditos (R$ 19)
-          </a>
+            Comprar Créditos
+          </button>
         </div>
       )}
 
