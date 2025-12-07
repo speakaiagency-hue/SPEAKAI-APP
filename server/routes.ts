@@ -7,6 +7,7 @@ import { createPromptService } from "./services/promptService";
 import { createImageService } from "./services/imageService";
 import { authMiddleware } from "./middleware/authMiddleware";
 import { deductCredits } from "./services/webhookService";
+import { registerWebhookRoutes } from "./routes/webhookRoutes"; // ✅ IMPORTA O WEBHOOK
 
 // Store chat instances per session
 const chatInstances = new Map<string, any>();
@@ -18,6 +19,9 @@ export async function registerRoutes(
   const chatService = await createChatService();
   const promptService = await createPromptService();
   const imageService = await createImageService();
+
+  // ✅ REGISTRA AS ROTAS DE WEBHOOK
+  await registerWebhookRoutes(app, storage, null);
 
   // Video Generation API (Protected)
   app.post("/api/video/generate", authMiddleware, async (req: Request, res: Response) => {
@@ -53,9 +57,7 @@ export async function registerRoutes(
       }
 
       if (!conversationId) {
-        return res
-          .status(400)
-          .json({ error: "ID da conversa é obrigatório" });
+        return res.status(400).json({ error: "ID da conversa é obrigatório" });
       }
 
       // Deduct credits
@@ -98,15 +100,13 @@ export async function registerRoutes(
     }
   });
 
-  // Chat API - Clear chat instance (when conversation is deleted)
+  // Chat API - Clear chat instance
   app.post("/api/chat/clear-session", async (req: Request, res: Response) => {
     try {
       const { conversationId } = req.body;
 
       if (!conversationId) {
-        return res
-          .status(400)
-          .json({ error: "ID da conversa é obrigatório" });
+        return res.status(400).json({ error: "ID da conversa é obrigatório" });
       }
 
       chatInstances.delete(conversationId);
