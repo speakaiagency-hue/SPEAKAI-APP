@@ -42,6 +42,7 @@ export function CreditsDisplay({
   };
 
   const hasEnoughCredits = credits !== null && credits >= operationCost;
+  const lowCredits = credits !== null && credits <= 50; // 🔑 nova regra
 
   return (
     <div className="space-y-2">
@@ -69,13 +70,15 @@ export function CreditsDisplay({
         <span className="font-semibold">-{operationCost}</span>
       </div>
 
-      {/* Insufficient Credits Warning */}
-      {!loading && !hasEnoughCredits && (
+      {/* Low or Insufficient Credits Warning */}
+      {!loading && (lowCredits || !hasEnoughCredits) && (
         <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 flex flex-col gap-2">
           <div className="flex items-start gap-2">
             <AlertCircle className="w-3 h-3 text-red-400 mt-0.5 shrink-0" />
             <div className="text-xs text-red-400">
-              Precisa de {operationCost} créditos. Compre mais!
+              {lowCredits
+                ? "Seu saldo está baixo. Compre mais créditos!"
+                : `Precisa de ${operationCost} créditos. Compre mais!`}
             </div>
           </div>
           <button
