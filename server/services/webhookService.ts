@@ -21,9 +21,9 @@ const CREDIT_COSTS = {
 // Mapeamento de produtos/plano → créditos fixos
 const CREDIT_MAP: Record<string, number> = {
   // Planos
-  plano_basico: 150,
-  plano_pro: 200,
-  plano_premium: 190,
+  basico: 150,
+  pro: 200,
+  premium: 190,
 
   // Pacotes de créditos
   "100_creditos": 100,
@@ -34,8 +34,8 @@ const CREDIT_MAP: Record<string, number> = {
   "2000_creditos": 2000,
 
   // Fallback para testes da Kiwify
-  produto: 50, // quando o webhook de teste manda "Produto"
-  "0": 50,     // quando o webhook de teste manda product_id = "0"
+  produto: 50,
+  "0": 50,
 };
 
 export async function verifyKiwifySignature(payload: string, signature: string): Promise<boolean> {
