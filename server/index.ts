@@ -2,6 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import path from "path";
+import fs from "fs";
 
 const app = express();
 const httpServer = createServer(app);
@@ -36,7 +38,7 @@ export function log(message: string, source = "express") {
 
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
+  const pathReq = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
   const originalResJson = res.json;
@@ -47,8 +49,8 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+    if (pathReq.startsWith("/api")) {
+      let logLine = `${req.method} ${pathReq} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -89,6 +91,18 @@ app.use((req, res, next) => {
     } else {
       next();
     }
+  });
+
+  // ➕ Nova rota de download segura
+  app.get("/api/download/:id", (req: Request, res: Response) => {
+    const filePath = path.join(__dirname, "storage/videos", req.params.id + ".mp4");
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "Vídeo não encontrado" });
+    }
+
+    // Força download com nome amigável
+    res.download(filePath, "Video gerado.mp4");
   });
 
   // Outras rotas (chat, prompt, image, video)
