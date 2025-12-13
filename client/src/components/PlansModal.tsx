@@ -17,7 +17,7 @@ const plans = [
     name: "Básico",
     price: "R$ 97,00",
     period: "",
-    description: "Perfeito para iniciantes - 150 créditos",
+    description: "Perfeito para iniciantes - 500 créditos",
     features: [
       "Chat IA ilimitado",
       "Gerador de Prompt",
@@ -34,7 +34,7 @@ const plans = [
     name: "Pro",
     price: "R$ 197,00",
     period: "",
-    description: "Para profissionais - 200 créditos",
+    description: "Para profissionais - 1.500 créditos",
     features: [
       "Chat IA ilimitado",
       "Gerador de Prompt",
@@ -51,7 +51,7 @@ const plans = [
     name: "Premium",
     price: "R$ 697,00",
     period: "",
-    description: "Para agências e empresas - 190 créditos",
+    description: "Para agências e empresas - 5.000 créditos",
     features: [
       "Chat IA ilimitado",
       "Gerador de Prompt",
