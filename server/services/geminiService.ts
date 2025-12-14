@@ -55,7 +55,7 @@ export async function generateVideo(params: GenerateVideoParams) {
       operation = await ai.models.generateVideos(generateVideoPayload);
     } catch (err) {
       console.error("❌ Erro inicial ao chamar generateVideos:", err);
-      return { videoUrl: "https://dummy.video/fallback.mp4", error: "Falha ao iniciar geração" };
+      return { videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4", error: "Falha ao iniciar geração" };
     }
 
     let attempts = 0;
@@ -73,7 +73,7 @@ export async function generateVideo(params: GenerateVideoParams) {
 
     if (!operation.done) {
       console.error("⚠️ Timeout: vídeo não finalizou em tempo hábil");
-      return { videoUrl: "https://dummy.video/fallback.mp4", error: "Timeout na geração" };
+      return { videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4", error: "Timeout na geração" };
     }
 
     if (operation?.response) {
@@ -81,13 +81,13 @@ export async function generateVideo(params: GenerateVideoParams) {
 
       if (!videos || videos.length === 0) {
         console.error("⚠️ Nenhum vídeo gerado:", operation);
-        return { videoUrl: "https://dummy.video/fallback.mp4", error: "Nenhum vídeo gerado" };
+        return { videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4", error: "Nenhum vídeo gerado" };
       }
 
       const firstVideo = videos[0];
       if (!firstVideo?.video?.uri) {
         console.error("⚠️ Vídeo sem URI:", firstVideo);
-        return { videoUrl: "https://dummy.video/fallback.mp4", error: "Vídeo sem URI" };
+        return { videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4", error: "Vídeo sem URI" };
       }
 
       let uriToParse = firstVideo.video.uri;
@@ -107,7 +107,7 @@ export async function generateVideo(params: GenerateVideoParams) {
       };
     } else {
       console.error("❌ Erro na resposta da operação:", operation.error || operation);
-      return { videoUrl: "https://dummy.video/fallback.mp4", error: "Erro na resposta da operação" };
+      return { videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4", error: "Erro na resposta da operação" };
     }
   });
 }
