@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Image as ImageIcon, Download, Maximize2, RefreshCw, Upload, Trash } from "lucide-react";
+import { Image as ImageIcon, Download, Maximize2, RefreshCw, Upload, Trash, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -16,10 +16,13 @@ function ImagePageComponent() {
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [aspectRatio, setAspectRatio] = useState("16:9");
 
-  // Upload de imagem
+  // Upload de imagem (edição)
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadedImageData, setUploadedImageData] = useState<{ base64: string; mimeType: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Visualização em tela cheia
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -54,6 +57,7 @@ function ImagePageComponent() {
   };
 
   const handleGenerate = async () => {
+    // Permite gerar com texto OU editar com imagem. Bloqueia apenas se ambos vazios.
     if (!prompt.trim() && !uploadedImageData) {
       toast({ title: "Digite um prompt ou envie uma imagem", variant: "destructive" });
       return;
@@ -66,6 +70,7 @@ function ImagePageComponent() {
         aspectRatio,
       };
 
+      // Se houver imagem, envia para edição fiel
       if (uploadedImageData) {
         payload.imageBase64 = uploadedImageData.base64;
         payload.imageMimeType = uploadedImageData.mimeType;
@@ -86,14 +91,16 @@ function ImagePageComponent() {
       }
 
       const result = await response.json();
-      console.log("API result:", result);
 
+      // Aceita diferentes formatos de retorno
       if (Array.isArray(result.images)) {
         setGeneratedImages(result.images);
       } else if (result.imageUrl) {
         setGeneratedImages([result.imageUrl]);
       } else if (result.url) {
         setGeneratedImages([result.url]);
+      } else if (result.dataUrl) {
+        setGeneratedImages([result.dataUrl]);
       } else {
         throw new Error("Resposta da API não contém URL da imagem.");
       }
@@ -202,6 +209,55 @@ function ImagePageComponent() {
         </Button>
       </div>
 
-      {/* Gallery */}
+      {/* Galeria */}
       {generatedImages.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-8 duration
+        <div className="space-y-6 mt-12">
+          <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            {generatedImages.map((src, i) => (
+              <div
+                key={i}
+                className="group relative aspect-video rounded-xl overflow-hidden border border-[#2d3748] shadow-xl bg-[#1a1d24]"
+              >
+                <img
+                  src={src}
+                  alt={`Generated ${i}`}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-sm">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="rounded-full h-12 w-12"
+                    onClick={() => setSelectedImage(src)}
+                  >
+                    <Maximize2 className="w-5 h-5" />
+                  </Button>
+                  <a href={src} download={`imagem-${i}.png`}>
+                    <Button size="icon" variant="secondary" className="rounded-full h-12 w-12">
+                      <Download className="w-5 h-5" />
+                    </Button>
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Modal fullscreen */}
+      {selectedImage && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <img src={selectedImage} alt="Fullscreen" className="max-w-full max-h-full rounded-lg shadow-2xl" />
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-6 right-6 text-white bg-black/50 rounded-full p-2 hover:bg-black/70 transition"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default withMembershipCheck(ImagePageComponent);
