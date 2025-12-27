@@ -140,13 +140,13 @@ export async function registerRoutes(
     }
   });
 
-  // Image Generation API (Protected)
+  // ✅ Image Generation API (Protected) - atualizado
   app.post("/api/image/generate", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const { prompt, aspectRatio = "1:1" } = req.body;
+      const { prompt, aspectRatio = "1:1", imageBase64, imageMimeType } = req.body;
 
-      if (!prompt || !prompt.trim()) {
-        return res.status(400).json({ error: "Descrição é obrigatória" });
+      if ((!prompt || !prompt.trim()) && !imageBase64) {
+        return res.status(400).json({ error: "Descrição ou imagem são obrigatórios" });
       }
 
       // Deduct credits
@@ -155,7 +155,14 @@ export async function registerRoutes(
         return res.status(402).json(deductResult);
       }
 
-      const result = await imageService.generateImage(prompt, aspectRatio);
+      const result = await imageService.generateImage(
+        prompt,
+        aspectRatio,
+        imageBase64 && imageMimeType
+          ? { data: imageBase64, mimeType: imageMimeType }
+          : undefined
+      );
+
       res.json({ ...result, creditsRemaining: deductResult.creditsRemaining });
     } catch (error) {
       console.error("Image generation error:", error);
