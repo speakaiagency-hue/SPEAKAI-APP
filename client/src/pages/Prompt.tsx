@@ -15,7 +15,6 @@ function PromptComponent() {
   const [qualityScore, setQualityScore] = useState(0);
   const [input, setInput] = useState("");
 
-  // estados para imagem
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadedImageData, setUploadedImageData] = useState<{ base64: string; mimeType: string } | null>(null);
 
@@ -32,10 +31,9 @@ function PromptComponent() {
     });
   };
 
-  // gerar prompt a partir de texto
   const handleGenerate = async () => {
-    if (!input.trim()) {
-      toast({ title: "Por favor, descreva o conteúdo primeiro", variant: "destructive" });
+    if (!input.trim() && !uploadedImageData) {
+      toast({ title: "Por favor, insira texto ou envie uma imagem", variant: "destructive" });
       return;
     }
 
@@ -44,7 +42,11 @@ function PromptComponent() {
       const response = await fetch("/api/prompt/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAuthHeader() },
-        body: JSON.stringify({ userInput: input }),
+        body: JSON.stringify({
+          userInput: input.trim() || null,
+          imageBase64: uploadedImageData?.base64 || null,
+          mimeType: uploadedImageData?.mimeType || null,
+        }),
       });
 
       if (!response.ok) {
@@ -59,13 +61,11 @@ function PromptComponent() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erro ao conectar com IA";
       toast({ title: message, variant: "destructive" });
-      console.error("Prompt generation error:", error);
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // gerar prompt a partir de imagem
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -74,28 +74,9 @@ function PromptComponent() {
       const base64 = await fileToBase64(file);
       setUploadedImage(URL.createObjectURL(file));
       setUploadedImageData({ base64, mimeType: file.type });
-
-      setIsGenerating(true);
-      const response = await fetch("/api/prompt/from-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...getAuthHeader() },
-        body: JSON.stringify({ imageBase64: base64, mimeType: file.type }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Erro ao gerar prompt da imagem");
-      }
-
-      const result = await response.json();
-      setGeneratedPrompt(result.prompt);
-      setQualityScore(Math.floor(Math.random() * 15) + 85);
-      toast({ title: "Prompt gerado a partir da imagem!" });
-    } catch (err) {
-      toast({ title: "Erro ao processar imagem", variant: "destructive" });
-      console.error("Image to prompt error:", err);
-    } finally {
-      setIsGenerating(false);
+      toast({ title: "Imagem carregada com sucesso!" });
+    } catch {
+      toast({ title: "Erro ao carregar imagem", variant: "destructive" });
     }
   };
 
@@ -103,28 +84,6 @@ function PromptComponent() {
     if (!generatedPrompt) return;
     navigator.clipboard.writeText(generatedPrompt);
     toast({ title: "Copiado!" });
-  };
-
-  const handleSave = async () => {
-    if (!generatedPrompt) {
-      toast({ title: "Nada para salvar", variant: "destructive" });
-      return;
-    }
-    try {
-      const response = await fetch("/api/prompt/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...getAuthHeader() },
-        body: JSON.stringify({ prompt: generatedPrompt, score: qualityScore }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Erro ao salvar prompt");
-      }
-      toast({ title: "Salvo na biblioteca!" });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Erro ao salvar";
-      toast({ title: message, variant: "destructive" });
-    }
   };
 
   return (
@@ -137,7 +96,7 @@ function PromptComponent() {
           Gerador de Prompt
         </h1>
         <p className="text-muted-foreground">
-          Descreva o que você precisa ou envie uma imagem para gerar automaticamente.
+          Digite um texto ou envie uma imagem para gerar automaticamente.
         </p>
       </div>
 
@@ -225,7 +184,7 @@ function PromptComponent() {
                 <Copy className="w-4 h-4 mr-2" />
                 Copiar Texto
               </Button>
-              <Button variant="outline" className="flex-1 border-[#2d3748] hover:bg-[#2d3748]" onClick={handleSave}>
+              <Button variant="outline" className="flex-1 border-[#2d3748] hover:bg-[#2d3748]">
                 <Save className="w-4 h-4 mr-2" />
                 Salvar na Biblioteca
               </Button>
