@@ -16,7 +16,7 @@ export async function createImageService() {
         const parts: any[] = [];
 
         if (inputImage) {
-          // Modo edição: envia a imagem primeiro
+          // Primeiro envia a imagem
           parts.push({
             inlineData: {
               data: inputImage.data,
@@ -24,13 +24,14 @@ export async function createImageService() {
             },
           });
 
+          // Depois envia instrução de edição
           const refinedPrompt = prompt
-            ? `Edite esta imagem seguindo esta instrução: ${prompt}. Preserve as características principais e o realismo.`
+            ? `Edite esta imagem seguindo esta instrução: ${prompt}. Preserve o realismo e as características principais.`
             : "Melhore a qualidade desta imagem mantendo os elementos originais.";
 
           parts.push({ text: refinedPrompt });
         } else {
-          // Modo geração: só texto
+          // Geração só por texto
           parts.push({ text: prompt || "Uma arte digital cinematográfica e detalhada" });
         }
 
