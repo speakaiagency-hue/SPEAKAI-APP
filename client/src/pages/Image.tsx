@@ -49,18 +49,20 @@ function ImagePageComponent() {
   };
 
   const handleGenerate = async () => {
-    if (creationMode === "text-to-image" && !prompt.trim()) {
-      toast({ title: "Digite um prompt primeiro", variant: "destructive" });
-      return;
-    }
-    if (creationMode === "image-to-image" && !uploadedImageData) {
-      toast({ title: "Envie uma imagem", variant: "destructive" });
+    // bloqueia apenas se não tiver nada (nem texto nem imagem)
+    if (!prompt.trim() && !uploadedImageData) {
+      toast({ title: "Por favor, insira texto ou envie uma imagem", variant: "destructive" });
       return;
     }
 
     setIsGenerating(true);
     try {
-      const payload: any = { prompt, aspectRatio, mode: creationMode };
+      const payload: any = {
+        prompt: prompt.trim() || null, // texto opcional
+        aspectRatio,
+        mode: creationMode,
+      };
+
       if (creationMode === "image-to-image" && uploadedImageData) {
         payload.imageBase64 = uploadedImageData.base64;
         payload.imageMimeType = uploadedImageData.mimeType;
@@ -81,7 +83,6 @@ function ImagePageComponent() {
       }
 
       const result = await response.json();
-
       if (Array.isArray(result.images)) {
         setGeneratedImages(result.images);
       } else if (result.imageUrl) {
@@ -118,14 +119,14 @@ function ImagePageComponent() {
 
       {/* Modo de criação */}
       <div className="space-y-2">
-        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Modo de Criação</label>
+        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Modo de criação</label>
         <select
           value={creationMode}
           onChange={(e) => setCreationMode(e.target.value as "text-to-image" | "image-to-image")}
           className="bg-[#1a1d24] border-[#2d3748] text-foreground h-12 rounded-lg px-3"
         >
-          <option value="text-to-image">Texto para Imagem</option>
-          <option value="image-to-image">Imagem para Imagem</option>
+          <option value="text-to-image">Texto para imagem</option>
+          <option value="image-to-image">Imagem para imagem</option>
         </select>
       </div>
 
@@ -150,8 +151,8 @@ function ImagePageComponent() {
             onChange={(e) => setPrompt(e.target.value)}
             placeholder={
               creationMode === "text-to-image"
-                ? "Descreva o que você quer ver..."
-                : "Opcional: descreva como alterar a imagem enviada (ex.: estilo anime, mudar fundo, cores)"
+                ? "Descreva o que você quer ver (opcional)..."
+                : "Opcional: descreva como alterar a imagem enviada (ex.: estilo anime, mudar fundo)"
             }
             className="min-h-[240px] w-full bg-[#0f1117] border-none resize-none text-lg p-6 focus-visible:ring-0 placeholder:text-muted-foreground/40"
             maxLength={2000}
@@ -195,7 +196,7 @@ function ImagePageComponent() {
               <span className="text-sm font-semibold px-2 py-1 rounded bg-white/20 border border-white/30">
                 {IMAGE_COST} ⚡
               </span>
-              <span>Gerar Imagem</span>
+              <span>Gerar imagem</span>
             </>
           )}
         </Button>
