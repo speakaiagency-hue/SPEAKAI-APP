@@ -1,15 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { Image as ImageIcon, Download, Maximize2, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { getAuthHeader } from "@/lib/auth";
+import { withMembershipCheck } from "@/components/ProtectedGenerator";
 
-export default function ImagePage() {
+const IMAGE_COST = 7;
+
+function ImagePageComponent() {
+  const { toast } = useToast();
+  const [isGenerating, setIsGenerating] = useState(false);
   const [prompt, setPrompt] = useState("");
-  const [aspectRatio, setAspectRatio] = useState("1:1");
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [aspectRatio, setAspectRatio] = useState("16:9");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [resultImage, setResultImage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Limpa URL de preview ao trocar imagem
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -19,8 +27,7 @@ export default function ImagePage() {
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] || null;
     setFile(f);
-    setResultImage(null);
-    setErrorMsg(null);
+    setGeneratedImages([]);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(f ? URL.createObjectURL(f) : null);
   };
@@ -30,7 +37,7 @@ export default function ImagePage() {
       const reader = new FileReader();
       reader.onload = () => {
         const dataUrl = reader.result as string;
-        const base64 = dataUrl.split(",")[1]; // remove prefixo
+        const base64 = dataUrl.split(",")[1]; // remove prefixo "data:*;base64,"
         resolve({ base64, mimeType: f.type });
       };
       reader.onerror = reject;
@@ -38,10 +45,12 @@ export default function ImagePage() {
     });
 
   const handleGenerate = async () => {
-    setLoading(true);
-    setErrorMsg(null);
-    setResultImage(null);
+    if (!prompt && !file) {
+      toast({ title: "Digite um prompt ou envie uma imagem", variant: "destructive" });
+      return;
+    }
 
+    setIsGenerating(true);
     try {
       let imageBase64: string | undefined;
       let imageMimeType: string | undefined;
@@ -52,80 +61,158 @@ export default function ImagePage() {
         imageMimeType = mimeType;
       }
 
-      const res = await fetch("/api/image/generate", {
+      const response = await fetch("/api/image/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
         body: JSON.stringify({ prompt, aspectRatio, imageBase64, imageMimeType }),
       });
 
-      const data = await res.json();
+      const result = await response.json();
 
-      if (!res.ok) {
-        setErrorMsg(data.error || "Falha ao gerar imagem");
-        return;
+      if (!response.ok) {
+        if (result.error === "insufficient_credits") {
+          throw new Error("Créditos insuficientes. Compre mais para continuar.");
+        }
+        throw new Error(result.error || "Erro ao gerar imagem");
       }
 
-      if (data.imageUrl) {
-        setResultImage(data.imageUrl);
+      // Normaliza diferentes formatos de resposta
+      if (Array.isArray(result.images)) {
+        setGeneratedImages(result.images);
+      } else if (result.imageUrl) {
+        setGeneratedImages([result.imageUrl]);
+      } else if (result.url) {
+        setGeneratedImages([result.url]);
       } else {
-        setErrorMsg("A resposta não continha uma imagem");
+        throw new Error("Resposta da API não contém URL da imagem.");
       }
+
+      toast({ title: "Imagem processada com sucesso!" });
     } catch (err) {
-      console.error(err);
-      setErrorMsg("Erro inesperado.");
+      const errorMessage = err instanceof Error ? err.message : "Ocorreu um erro inesperado.";
+      toast({ title: errorMessage, variant: "destructive" });
+      console.error("Image generation error:", err);
     } finally {
-      setLoading(false);
+      setIsGenerating(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: 720, margin: "40px auto", padding: 16 }}>
-      <h1>Gerar ou editar imagem</h1>
+    <div className="space-y-8 max-w-4xl mx-auto">
+      <div className="flex flex-col items-center text-center gap-2 mb-8">
+        <h1 className="text-3xl font-heading font-bold flex items-center gap-2">
+          <span className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
+            <ImageIcon className="w-6 h-6" />
+          </span>
+          Geração de Imagem
+        </h1>
+        <p className="text-muted-foreground">
+          Descreva o que você quer ver ou envie uma imagem para editar.
+        </p>
+      </div>
 
-      <label>Descrição</label>
-      <textarea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Digite sua instrução..."
-        rows={4}
-        style={{ width: "100%", marginBottom: 12 }}
-      />
+      <div className="space-y-4">
+        {/* Prompt + Aspect ratio */}
+        <div className="bg-[#0f1117] p-1 rounded-xl border border-[#1f2937] shadow-2xl">
+          <Textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Me conta o que você quer ver — ou descreva a edição que deseja."
+            className="min-h-[160px] w-full bg-[#0f1117] border-none resize-none text-lg p-6 focus-visible:ring-0 placeholder:text-muted-foreground/40"
+            maxLength={2000}
+          />
 
-      <label>Proporção</label>
-      <select
-        value={aspectRatio}
-        onChange={(e) => setAspectRatio(e.target.value)}
-        style={{ width: "100%", marginBottom: 12 }}
-      >
-        <option value="1:1">1:1 (quadrado)</option>
-        <option value="16:9">16:9 (paisagem)</option>
-        <option value="9:16">9:16 (retrato)</option>
-      </select>
+          <div className="flex items-end justify-between px-6 pb-4">
+            <div className="flex items-center gap-2 bg-[#0f1117]">
+              {["16:9", "9:16", "1:1"].map((ratio) => (
+                <button
+                  key={ratio}
+                  onClick={() => setAspectRatio(ratio)}
+                  className={cn(
+                    "px-4 py-1.5 rounded-lg text-sm font-medium transition-all border",
+                    aspectRatio === ratio
+                      ? "bg-[#6366f1] text-white border-[#6366f1]"
+                      : "bg-[#1a1d24] text-gray-400 border-[#2d3748] hover:bg-[#2d3748]"
+                  )}
+                >
+                  {ratio}
+                </button>
+              ))}
+            </div>
 
-      <label>Upload de imagem (opcional)</label>
-      <input type="file" accept="image/*" onChange={onFileChange} />
-      {previewUrl && (
-        <div style={{ margin: "12px 0" }}>
-          <img src={previewUrl} alt="Preview" style={{ maxWidth: "100%", borderRadius: 8 }} />
+            <div className="text-xs text-muted-foreground font-mono">
+              {prompt.length}/2000
+            </div>
+          </div>
         </div>
-      )}
 
-      <button onClick={handleGenerate} disabled={loading} style={{ marginTop: 12 }}>
-        {loading ? "Processando..." : file ? "Aplicar mudanças" : "Gerar imagem"}
-      </button>
-
-      {errorMsg && (
-        <div style={{ marginTop: 12, color: "#c00" }}>
-          {errorMsg}
+        {/* Upload + preview */}
+        <div className="bg-[#0f1117] p-4 rounded-xl border border-[#1f2937] shadow-2xl">
+          <label className="block text-sm font-medium mb-2 text-gray-300">
+            Upload de imagem (opcional)
+          </label>
+          <input type="file" accept="image/*" onChange={onFileChange} />
+          {previewUrl && (
+            <div className="mt-4">
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="max-h-64 rounded-lg border border-gray-700 object-contain"
+              />
+            </div>
+          )}
         </div>
-      )}
 
-      {resultImage && (
-        <div style={{ marginTop: 16 }}>
-          <h2>Resultado</h2>
-          <img src={resultImage} alt="Resultado" style={{ maxWidth: "100%", borderRadius: 8 }} />
+        {/* Action */}
+        <Button
+          className="w-full bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-bold h-16 rounded-xl text-xl shadow-lg shadow-purple-900/20 transition-all duration-300 hover:scale-[1.01] flex items-center justify-center gap-3"
+          onClick={handleGenerate}
+          disabled={isGenerating}
+        >
+          {isGenerating ? (
+            <span className="flex items-center gap-2">
+              <RefreshCw className="w-6 h-6 animate-spin" /> Processando...
+            </span>
+          ) : (
+            <>
+              <span className="text-sm font-semibold px-2 py-1 rounded bg-white/20 border border-white/30">
+                {IMAGE_COST} ⚡
+              </span>
+              <span>{file ? "Aplicar mudanças" : "Gerar Imagem"}</span>
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* Gallery */}
+      {generatedImages.length > 0 && (
+        <div className="grid grid-cols-2 gap-4 mt-12">
+          {generatedImages.map((src, i) => (
+            <div
+              key={i}
+              className="group relative aspect-video rounded-xl overflow-hidden border border-[#2d3748] shadow-xl bg-[#1a1d24]"
+            >
+              <img
+                src={src}
+                alt={`Generated ${i}`}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-sm">
+                <Button size="icon" variant="secondary" className="rounded-full h-12 w-12">
+                  <Maximize2 className="w-5 h-5" />
+                </Button>
+                <a href={src} download={`imagem-${i}.png`}>
+                  <Button size="icon" variant="secondary" className="rounded-full h-12 w-12">
+                    <Download className="w-5 h-5" />
+                  </Button>
+                </a>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
   );
 }
+
+export default withMembershipCheck(ImagePageComponent);
