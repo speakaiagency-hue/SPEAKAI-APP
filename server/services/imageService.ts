@@ -24,12 +24,8 @@ export async function createImageService() {
             },
           });
 
-          // Depois envia instrução de edição
-          const refinedPrompt = prompt
-            ? `Edite esta imagem seguindo esta instrução: ${prompt}. Preserve o realismo e as características principais.`
-            : "Melhore a qualidade desta imagem mantendo os elementos originais.";
-
-          parts.push({ text: refinedPrompt });
+          // Depois envia instrução do usuário (sem refinamento automático)
+          parts.push({ text: prompt || "Edite esta imagem mantendo todos os elementos originais." });
         } else {
           // Geração só por texto
           parts.push({ text: prompt || "Uma arte digital cinematográfica e detalhada" });
@@ -41,7 +37,16 @@ export async function createImageService() {
           config: {
             imageConfig: { aspectRatio },
           },
+          // Se o SDK suportar, adicione para reduzir variação:
+          generationConfig: {
+            temperature: 0.2,
+            topP: 0.8,
+            topK: 40,
+          },
         });
+
+        // Debug opcional: logar resposta completa
+        console.log("Gemini response:", JSON.stringify(geminiResponse, null, 2));
 
         if (
           geminiResponse.candidates &&
