@@ -32,6 +32,7 @@ function PromptComponent() {
   };
 
   const handleGenerate = async () => {
+    // texto é opcional; só bloqueia se não tiver texto nem imagem
     if (!input.trim() && !uploadedImageData) {
       toast({ title: "Por favor, insira texto ou envie uma imagem", variant: "destructive" });
       return;
@@ -43,8 +44,8 @@ function PromptComponent() {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAuthHeader() },
         body: JSON.stringify({
-          userInput: input.trim() || null,
-          imageBase64: uploadedImageData?.base64 || null,
+          userInput: input.trim() || null,          // texto opcional
+          imageBase64: uploadedImageData?.base64 || null, // imagem opcional
           mimeType: uploadedImageData?.mimeType || null,
         }),
       });
@@ -61,6 +62,7 @@ function PromptComponent() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erro ao conectar com IA";
       toast({ title: message, variant: "destructive" });
+      console.error("Prompt generation error:", error);
     } finally {
       setIsGenerating(false);
     }
@@ -96,7 +98,7 @@ function PromptComponent() {
           Gerador de Prompt
         </h1>
         <p className="text-muted-foreground">
-          Digite um texto ou envie uma imagem para gerar automaticamente.
+          Digite um texto (opcional) ou envie uma imagem para gerar automaticamente.
         </p>
       </div>
 
@@ -135,7 +137,7 @@ function PromptComponent() {
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Descreva o conteúdo ou use uma imagem para gerar automaticamente..."
+            placeholder="Você pode escrever algo aqui... ou deixar vazio!"
             className="min-h-[200px] w-full bg-[#0f1117] border-none resize-none text-lg p-6 focus-visible:ring-0 placeholder:text-muted-foreground/40"
             maxLength={2000}
           />
@@ -159,7 +161,7 @@ function PromptComponent() {
         </Button>
       </div>
 
-      {/* Output Section */}
+      {/* Saída */}
       {generatedPrompt && (
         <Card className="border-border/50 shadow-lg bg-[#0f1117]/50 backdrop-blur-sm relative overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-500">
           {qualityScore > 0 && (
