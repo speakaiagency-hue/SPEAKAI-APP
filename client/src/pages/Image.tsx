@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Image as ImageIcon, Download, Maximize2, RefreshCw } from "lucide-react";
+import { Image as ImageIcon, Download, Maximize2, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,7 @@ function ImagePageComponent() {
   const [prompt, setPrompt] = useState("");
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [aspectRatio, setAspectRatio] = useState("16:9");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!prompt) {
@@ -41,7 +42,6 @@ function ImagePageComponent() {
       const result = await response.json();
       console.log("API result:", result);
 
-      // Correção: verificar se retorna array ou campo único
       if (Array.isArray(result.images)) {
         setGeneratedImages(result.images);
       } else if (result.imageUrl) {
@@ -135,29 +135,59 @@ function ImagePageComponent() {
 
       {/* Gallery */}
       {generatedImages.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 mt-12">
-          {generatedImages.map((src, i) => (
-            <div
-              key={i}
-              className="group relative aspect-video rounded-xl overflow-hidden border border-[#2d3748] shadow-xl bg-[#1a1d24]"
-            >
-              <img
-                src={src}
-                alt={`Generated ${i}`}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-sm">
-                <Button size="icon" variant="secondary" className="rounded-full h-12 w-12">
-                  <Maximize2 className="w-5 h-5" />
-                </Button>
-                <a href={src} download={`imagem-${i}.png`}>
-                  <Button size="icon" variant="secondary" className="rounded-full h-12 w-12">
-                    <Download className="w-5 h-5" />
+        <div className="space-y-6 mt-12">
+          <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            {generatedImages.map((src, i) => (
+              <div
+                key={i}
+                className="group relative aspect-video rounded-xl overflow-hidden border border-[#2d3748] shadow-xl bg-[#1a1d24]"
+              >
+                <img
+                  src={src}
+                  alt={`Generated ${i}`}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-sm">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="rounded-full h-12 w-12"
+                    onClick={() => setSelectedImage(src)}
+                  >
+                    <Maximize2 className="w-5 h-5" />
                   </Button>
-                </a>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {/* Download buttons fora da imagem */}
+          <div className="flex flex-wrap gap-3 justify-center">
+            {generatedImages.map((src, i) => (
+              <a key={i} href={src} download={`imagem-${i}.png`}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg"
+                >
+                  <Download className="w-4 h-4" /> Baixar imagem {i + 1}
+                </Button>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Modal fullscreen */}
+      {selectedImage && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <img src={selectedImage} alt="Fullscreen" className="max-w-full max-h-full rounded-lg shadow-2xl" />
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-6 right-6 text-white bg-black/50 rounded-full p-2 hover:bg-black/70 transition"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
       )}
     </div>
