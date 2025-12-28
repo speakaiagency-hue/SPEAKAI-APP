@@ -5,17 +5,22 @@ export async function createPromptService() {
   const rotator = getGeminiKeyRotator();
 
   return {
-    async generateCreativePrompt(userText: string): Promise<string> {
+    async generateCreativePrompt(userText?: string): Promise<string> {
       return await rotator.executeWithRotation(async (apiKey) => {
         const ai = new GoogleGenAI({ apiKey });
-        
+
+        // Se não houver texto, cria uma instrução genérica
+        const promptText = userText?.trim()
+          ? `Melhore e expanda esta descrição para um prompt completo de geração de imagem: "${userText}".\n\nGaranta que o prompt seja rico em detalhes visuais e esteja em português.`
+          : `Crie um prompt artístico e descritivo em português para geração de imagem, focando em iluminação, textura, composição, atmosfera, estilo artístico e configurações de câmera.`;
+
         const response = await ai.models.generateContent({
           model: "gemini-2.5-flash",
           config: {
             systemInstruction:
               "Você é um especialista em engenharia de prompts de IA, focado em criar descrições visuais para modelos de geração de imagem de alta qualidade (como Imagen, Midjourney, DALL-E). Seu objetivo é pegar descrições simples do usuário e expandi-las em prompts altamente detalhados, artísticos e descritivos. Foque em iluminação, textura, composição, atmosfera, estilo artístico e configurações de câmera. Escreva o resultado final inteiramente em PORTUGUÊS. A saída deve ser um único parágrafo descritivo sem numeração ou marcadores.",
           },
-          contents: `Melhore e expanda esta descrição para um prompt completo de geração de imagem: "${userText}".\n\nGaranta que o prompt seja rico em detalhes visuais e esteja em português.`,
+          contents: promptText,
         });
 
         return response.text || "Não foi possível gerar o prompt.";
