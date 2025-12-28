@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Image as ImageIcon, Download, Maximize2, RefreshCw, UploadCloud } from "lucide-react";
+import { Image as ImageIcon, UploadCloud, Maximize2, RefreshCw, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -15,8 +15,10 @@ function ImagePageComponent() {
   const [prompt, setPrompt] = useState("");
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [aspectRatio, setAspectRatio] = useState("16:9");
+
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [zoomImage, setZoomImage] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -36,7 +38,7 @@ function ImagePageComponent() {
       const reader = new FileReader();
       reader.onload = () => {
         const dataUrl = reader.result as string;
-        const base64 = dataUrl.split(",")[1]; // remove prefixo "data:*;base64,"
+        const base64 = dataUrl.split(",")[1];
         resolve({ base64, mimeType: f.type });
       };
       reader.onerror = reject;
@@ -75,15 +77,28 @@ function ImagePageComponent() {
         throw new Error(result.error || "Erro ao gerar imagem");
       }
 
-      // Normaliza diferentes formatos de resposta
-      if (Array.isArray(result.images)) {
-        setGeneratedImages(result.images);
-      } else if (result.imageUrl) {
-        setGeneratedImages([result.imageUrl]);
-      } else if (result.url) {
-        setGeneratedImages([result.url]);
+      // Aceitar diferentes formatos de campo de imagem
+      const possibleImageFields = [
+        result.images,
+        result.imageUrl,
+        result.url,
+        result.image,
+        result.data,
+      ];
+
+      const validImages = possibleImageFields.find((field) => {
+        if (Array.isArray(field)) return field.length > 0;
+        if (typeof field === "string") return field.startsWith("http");
+        return false;
+      });
+
+      if (Array.isArray(validImages)) {
+        setGeneratedImages(validImages);
+      } else if (typeof validImages === "string") {
+        setGeneratedImages([validImages]);
       } else {
-        throw new Error("Resposta da API não contém URL da imagem.");
+        console.log("Resposta da API:", result);
+        throw new Error("A resposta da API não continha uma imagem.");
       }
 
       toast({ title: "Imagem processada com sucesso!" });
@@ -98,6 +113,7 @@ function ImagePageComponent() {
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
+      {/* Header */}
       <div className="flex flex-col items-center text-center gap-2 mb-8">
         <h1 className="text-3xl font-heading font-bold flex items-center gap-2">
           <span className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
@@ -145,7 +161,7 @@ function ImagePageComponent() {
           </div>
         </div>
 
-        {/* Upload estilizado + preview */}
+        {/* Upload estilizado */}
         <label
           htmlFor="image-upload"
           className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-600 rounded-xl cursor-pointer bg-[#0f1117] hover:border-purple-500 transition-all"
@@ -195,31 +211,61 @@ function ImagePageComponent() {
         </Button>
       </div>
 
-      {/* Gallery */}
+      {/* Gallery + ações */}
       {generatedImages.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 mt-12">
-          {generatedImages.map((src, i) => (
-            <div
-              key={i}
-              className="group relative aspect-video rounded-xl overflow-hidden border border-[#2d3748] shadow-xl bg-[#1a1d24]"
-            >
-              <img
-                src={src}
-                alt={`Generated ${i}`}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-sm">
-                <Button size="icon" variant="secondary" className="rounded-full h-12 w-12">
-                  <Maximize2 className="w-5 h-5" />
-                </Button>
-                <a href={src} download={`imagem-${i}.png`}>
-                  <Button size="icon" variant="secondary" className="rounded-full h-12 w-12">
-                    <Download className="w-5 h-5" />
+        <div className="space-y-4 mt-12">
+          <div className="grid grid-cols-2 gap-4">
+            {generatedImages.map((src, i) => (
+              <div
+                key={i}
+                className="group relative aspect-video rounded-xl overflow-hidden border border-[#2d3748] shadow-xl bg-[#1a1d24]"
+              >
+                <img
+                  src={src}
+                  alt={`Generated ${i}`}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="rounded-full h-12 w-12"
+                    onClick={() => setZoomImage(src)}
+                  >
+                    <Maximize2 className="w-5 h-5" />
                   </Button>
-                </a>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {/* Botões de download (fora das imagens) */}
+          <div className="flex flex-wrap gap-2 justify-end">
+            {generatedImages.map((src, i) => (
+              <a key={`dl-${i}`} href={src} download={`imagem-${i}.png`}>
+                <Button size="sm" variant="secondary" className="rounded-md">
+                  <Download className="w-4 h-4 mr-1" /> Baixar {i + 1}
+                </Button>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Modal de zoom */}
+      {zoomImage && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="absolute top-4 right-4">
+            <Button
+              size="icon"
+              variant="secondary"
+              className="rounded-full"
+              onClick={() => setZoomImage(null)}
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+          <img src={zoomImage} alt="Zoom" className="max-w-[90vw] max-h-[85vh] rounded-lg" />
         </div>
       )}
     </div>
