@@ -1,4 +1,4 @@
-import { type User, type InsertUser, users, userCredits, credit_transactions } from "@shared/schema";
+import { type User, type InsertUser, users, userCredits, creditTransactions } from "@shared/schema";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { eq } from "drizzle-orm";
@@ -14,7 +14,7 @@ async function getDb() {
 
     db = drizzle(pool);
 
-    // Create tables if they don't exist
+    // Garantir que as tabelas existam
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -70,207 +70,132 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    try {
-      const database = await getDb();
-      const user = await database.select().from(users).where(eq(users.id, id)).limit(1);
-      console.log(`🔍 getUser(${id}):`, !!user[0]);
-      return user[0];
-    } catch (error) {
-      console.error("getUser error:", error);
-      return undefined;
-    }
+    const database = await getDb();
+    const user = await database.select().from(users).where(eq(users.id, id)).limit(1);
+    return user[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    try {
-      const database = await getDb();
-      const user = await database.select().from(users).where(eq(users.username, username)).limit(1);
-      console.log(`🔍 getUserByUsername(${username}):`, !!user[0]);
-      return user[0];
-    } catch (error) {
-      console.error("getUserByUsername error:", error);
-      return undefined;
-    }
+    const database = await getDb();
+    const user = await database.select().from(users).where(eq(users.username, username)).limit(1);
+    return user[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    try {
-      const database = await getDb();
-      const user = await database.select().from(users).where(eq(users.email, email)).limit(1);
-      console.log(`🔍 getUserByEmail(${email}):`, !!user[0]);
-      return user[0];
-    } catch (error) {
-      console.error("getUserByEmail error:", error);
-      return undefined;
-    }
+    const database = await getDb();
+    const user = await database.select().from(users).where(eq(users.email, email)).limit(1);
+    return user[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    try {
-      const database = await getDb();
-      const result = await database.insert(users).values(insertUser).returning();
-      console.log("✅ User created:", { id: result[0]?.id, username: insertUser.username });
-      return result[0];
-    } catch (error) {
-      console.error("createUser error:", error);
-      throw error;
-    }
+    const database = await getDb();
+    const result = await database.insert(users).values(insertUser).returning();
+    return result[0];
   }
 
   async updateUserAvatar(id: string, avatar: string): Promise<User | undefined> {
-    try {
-      const database = await getDb();
-      const result = await database.update(users).set({ avatar }).where(eq(users.id, id)).returning();
-      return result[0];
-    } catch (error) {
-      console.error("updateUserAvatar error:", error);
-      return undefined;
-    }
+    const database = await getDb();
+    const result = await database.update(users).set({ avatar }).where(eq(users.id, id)).returning();
+    return result[0];
   }
 
   async updateUserProfile(id: string, data: { name: string; email: string }): Promise<User | undefined> {
-    try {
-      const database = await getDb();
-      const result = await database.update(users).set(data).where(eq(users.id, id)).returning();
-      return result[0];
-    } catch (error) {
-      console.error("updateUserProfile error:", error);
-      return undefined;
-    }
+    const database = await getDb();
+    const result = await database.update(users).set(data).where(eq(users.id, id)).returning();
+    return result[0];
   }
 
   async updateUserPassword(id: string, password: string): Promise<User | undefined> {
-    try {
-      const database = await getDb();
-      const result = await database.update(users).set({ password }).where(eq(users.id, id)).returning();
-      return result[0];
-    } catch (error) {
-      console.error("updateUserPassword error:", error);
-      return undefined;
-    }
+    const database = await getDb();
+    const result = await database.update(users).set({ password }).where(eq(users.id, id)).returning();
+    return result[0];
   }
 
   async getUserCredits(userId: string) {
-    try {
-      const database = await getDb();
-      const credits = await database.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
-      if (credits[0]) {
-        return {
-          credits: credits[0].credits,
-          totalUsed: credits[0].totalUsed,
-          totalPurchased: credits[0].totalPurchased,
-        };
-      }
-      return null;
-    } catch (error) {
-      console.error("getUserCredits error:", error);
-      return null;
+    const database = await getDb();
+    const credits = await database.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
+    if (credits[0]) {
+      return {
+        credits: credits[0].credits,
+        totalUsed: credits[0].totalUsed,
+        totalPurchased: credits[0].totalPurchased,
+      };
     }
+    return null;
   }
 
   async addCredits(userId: string, amount: number) {
-    try {
-      const database = await getDb();
-      let credits = await database.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
+    const database = await getDb();
+    let credits = await database.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
 
-      if (!credits[0]) {
-        const result = await database
-          .insert(userCredits)
-          .values({
-            userId,
-            credits: amount,
-            totalPurchased: amount,
-            totalUsed: 0,
-          })
-          .returning();
-        return {
-          credits: result[0].credits,
-          totalUsed: result[0].totalUsed,
-          totalPurchased: result[0].totalPurchased,
-        };
-      }
-
-      const updated = credits[0].credits + amount;
+    if (!credits[0]) {
       const result = await database
-        .update(userCredits)
-        .set({
-          credits: updated,
-          totalPurchased: (credits[0].totalPurchased || 0) + amount,
+        .insert(userCredits)
+        .values({
+          userId,
+          credits: amount,
+          totalPurchased: amount,
+          totalUsed: 0,
         })
-        .where(eq(userCredits.userId, userId))
         .returning();
-
-      return {
-        credits: result[0].credits,
-        totalUsed: result[0].totalUsed,
-        totalPurchased: result[0].totalPurchased,
-      };
-    } catch (error) {
-      console.error("addCredits error:", error);
-      return null;
+      return result[0];
     }
+
+    const updated = credits[0].credits + amount;
+    const result = await database
+      .update(userCredits)
+      .set({
+        credits: updated,
+        totalPurchased: (credits[0].totalPurchased || 0) + amount,
+      })
+      .where(eq(userCredits.userId, userId))
+      .returning();
+
+    return result[0];
   }
 
   async deductCredits(userId: string, amount: number) {
-    try {
-      const database = await getDb();
-      const credits = await database.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
+    const database = await getDb();
+    const credits = await database.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
 
-      if (!credits[0] || credits[0].credits < amount) {
-        return null;
-      }
-
-      const updated = credits[0].credits - amount;
-      const result = await database
-        .update(userCredits)
-        .set({
-          credits: updated,
-          totalUsed: (credits[0].totalUsed || 0) + amount,
-        })
-        .where(eq(userCredits.userId, userId))
-        .returning();
-
-      return {
-        credits: result[0].credits,
-        totalUsed: result[0].totalUsed,
-        totalPurchased: result[0].totalPurchased,
-      };
-    } catch (error) {
-      console.error("deductCredits error:", error);
+    if (!credits[0] || credits[0].credits < amount) {
       return null;
     }
+
+    const updated = credits[0].credits - amount;
+    const result = await database
+      .update(userCredits)
+      .set({
+        credits: updated,
+        totalUsed: (credits[0].totalUsed || 0) + amount,
+      })
+      .where(eq(userCredits.userId, userId))
+      .returning();
+
+    return result[0];
   }
 
   async hasProcessedPurchase(purchaseId: string): Promise<boolean> {
-    try {
-      const database = await getDb();
-      const tx = await database
-        .select()
-        .from(credit_transactions)
-        .where(eq(credit_transactions.kiwify_purchase_id, purchaseId))
-        .limit(1);
+    const database = await getDb();
+    const tx = await database
+      .select()
+      .from(creditTransactions)
+      .where(eq(creditTransactions.kiwifyPurchaseId, purchaseId))
+      .limit(1);
 
-      return !!tx[0];
-    } catch (error) {
-      console.error("hasProcessedPurchase error:", error);
-      return false;
-    }
+    return !!tx[0];
   }
 
-      async markPurchaseProcessed(purchaseId: string, userId?: string): Promise<void> {
-    try {
-      const database = await getDb();
-      await database.insert(credit_transactions).values({
-        user_id: userId || "system", // ✅ agora pode receber o userId real
-        type: "purchase",
-        amount: 0,
-        description: "Compra processada",
-        kiwify_purchase_id: purchaseId,
-        operation_type: "processed",
-      });
-    } catch (error) {
-      console.error("markPurchaseProcessed error:", error);
-    }
+  async markPurchaseProcessed(purchaseId: string, userId?: string): Promise<void> {
+    const database = await getDb();
+    await database.insert(creditTransactions).values({
+      userId: userId || "system",
+      type: "purchase",
+      amount: 0,
+      description: "Compra processada",
+      kiwifyPurchaseId: purchaseId,
+      operationType: "processed",
+    });
   }
 }
 
