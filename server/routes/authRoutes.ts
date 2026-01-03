@@ -2,12 +2,9 @@ import type { Express, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { generateToken, authMiddleware } from "../middleware/authMiddleware";
 import { storage } from "../storage";
-import { createKiwifyService } from "../services/kiwifyService";
 
 export async function registerAuthRoutes(app: Express) {
-  const kiwifyService = await createKiwifyService();
-
-  // Register endpoint - create new user with hashed password
+  // ✅ Registro de usuário
   app.post("/api/auth/register", async (req: Request, res: Response) => {
     try {
       const { email, password, name } = req.body;
@@ -32,9 +29,9 @@ export async function registerAuthRoutes(app: Express) {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const newUser = await storage.createUser({ 
-        username: email, 
-        password: hashedPassword
+      const newUser = await storage.createUser({
+        username: email,
+        password: hashedPassword,
       });
 
       if (newUser) {
@@ -58,7 +55,7 @@ export async function registerAuthRoutes(app: Express) {
     }
   });
 
-  // Login endpoint
+  // ✅ Login
   app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
@@ -77,7 +74,7 @@ export async function registerAuthRoutes(app: Express) {
       if (!passwordMatch) {
         return res.status(401).json({ error: "Email ou senha inválidos" });
       }
-      
+
       console.log("✅ Login successful for user:", email);
 
       const token = generateToken(user.id, user.email || email, user.name || undefined);
@@ -96,7 +93,7 @@ export async function registerAuthRoutes(app: Express) {
     }
   });
 
-  // ✅ Novo endpoint: Check access baseado em créditos
+  // ✅ Verificação de acesso baseada em créditos
   app.get("/api/auth/check-access", authMiddleware, async (req: Request, res: Response) => {
     try {
       const user = await storage.getUser(req.user!.id);
@@ -120,7 +117,7 @@ export async function registerAuthRoutes(app: Express) {
     }
   });
 
-  // Update User Avatar
+  // ✅ Atualizar avatar
   app.post("/api/auth/update-avatar", authMiddleware, async (req: Request, res: Response) => {
     try {
       const { avatar } = req.body;
@@ -141,7 +138,7 @@ export async function registerAuthRoutes(app: Express) {
     }
   });
 
-  // Update User Profile
+  // ✅ Atualizar perfil
   app.post("/api/auth/update-profile", authMiddleware, async (req: Request, res: Response) => {
     try {
       const { name, email } = req.body;
@@ -162,7 +159,7 @@ export async function registerAuthRoutes(app: Express) {
     }
   });
 
-  // Change Password
+  // ✅ Alterar senha
   app.post("/api/auth/change-password", authMiddleware, async (req: Request, res: Response) => {
     try {
       const { currentPassword, newPassword } = req.body;
