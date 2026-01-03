@@ -13,7 +13,9 @@ export interface User {
 export const getAuthToken = (): string | null => {
   try {
     const token = localStorage.getItem("authToken");
-    if (!token || token === "undefined" || token === "null") return null;
+    if (!token || token.trim() === "" || token === "undefined" || token === "null") {
+      return null;
+    }
     return token;
   } catch (error) {
     console.error("Erro ao recuperar token:", error);
@@ -31,7 +33,13 @@ export const getUser = (): User | null => {
     if (!user || user === "undefined" || user === "null") return null;
 
     const parsed = JSON.parse(user);
-    if (parsed && typeof parsed === "object" && "id" in parsed) {
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      "id" in parsed &&
+      "email" in parsed &&
+      "name" in parsed
+    ) {
       return parsed as User;
     }
     return null;
@@ -46,7 +54,7 @@ export const getUser = (): User | null => {
  */
 export const setAuthToken = (token: string, user: User) => {
   try {
-    if (!token || token === "undefined" || token === "null") {
+    if (!token || token.trim() === "" || token === "undefined" || token === "null") {
       throw new Error("Token inválido");
     }
     localStorage.setItem("authToken", token);
@@ -81,5 +89,9 @@ export const isAuthenticated = (): boolean => {
  */
 export const getAuthHeader = (): Record<string, string> => {
   const token = getAuthToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
 };
