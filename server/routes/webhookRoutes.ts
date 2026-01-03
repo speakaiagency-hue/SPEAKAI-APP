@@ -40,9 +40,10 @@ export async function registerWebhookRoutes(app: Express, storage: IStorage, kiw
         // 🔎 Log do JSON completo para inspeção
         console.log("📝 Webhook JSON parseado:", JSON.stringify(body, null, 2));
 
-        // Garantir que temos e-mail do cliente (ou tentar outros campos)
+        // Captura o e-mail do cliente (Customer.email é o campo correto)
         const customerEmail =
-          body.customer?.email ||
+          body.Customer?.email || // campo correto
+          body.customer?.email || // fallback se vier minúsculo
           body.buyer_email ||
           body.email ||
           null;
@@ -53,7 +54,7 @@ export async function registerWebhookRoutes(app: Express, storage: IStorage, kiw
         }
 
         // Validar status do pagamento
-        const status = body.status;
+        const status = body.order_status || body.status;
         if (!["paid", "completed", "approved"].includes(status)) {
           console.warn("⚠️ Status não reconhecido:", status);
           return res.status(400).json({ success: false, message: "Status inválido" });
@@ -63,10 +64,10 @@ export async function registerWebhookRoutes(app: Express, storage: IStorage, kiw
         const webhookData: KiwifyWebhookData = {
           purchase_id: body.purchase_id || body.id || body.order_id || `purchase_${Date.now()}`,
           customer_email: customerEmail,
-          customer_name: body.customer?.name || body.name || "Cliente Kiwify",
-          product_name: body.product?.name || body.product_name || "Produto",
-          product_id: body.product?.id || body.product_id || "0",
-          value: parseFloat(body.value || body.total || "0"),
+          customer_name: body.Customer?.full_name || body.customer?.name || body.name || "Cliente Kiwify",
+          product_name: body.Product?.product_name || body.product?.name || body.product_name || "Produto",
+          product_id: body.Product?.product_id || body.product?.id || body.product_id || "0",
+          value: parseFloat(body.Commissions?.charge_amount || body.value || body.total || "0"),
           status,
         };
 
