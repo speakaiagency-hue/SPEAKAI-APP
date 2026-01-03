@@ -65,8 +65,20 @@ export async function handleKiwifyPurchase(
   storage: IStorage
 ): Promise<PurchaseResult> {
   const offerId = resolveOfferId(data);
-  const userId = data.customer_email;
   const purchaseId = data.purchase_id;
+
+  // ✅ Buscar usuário pelo e-mail
+  const user = await storage.getUserByEmail(data.customer_email);
+  if (!user) {
+    return {
+      success: false,
+      message: "Usuário não encontrado para o e-mail informado",
+      userId: data.customer_email,
+      purchaseId,
+    };
+  }
+
+  const userId = user.id; // ✅ agora usamos o UUID do usuário
 
   if (!offerId) {
     return {
@@ -104,13 +116,8 @@ export async function handleKiwifyPurchase(
     }
 
     if (action === "grant") {
-      await storage.addCredits(userId, credits, {
-        source: "kiwify",
-        offerId,
-        purchaseId,
-        value: data.value,
-      });
-      await storage.markPurchaseProcessed(purchaseId);
+      await storage.addCredits(userId, credits);
+      await storage.markPurchaseProcessed(purchaseId, userId);
 
       return {
         success: true,
@@ -123,12 +130,7 @@ export async function handleKiwifyPurchase(
     }
 
     if (action === "revoke") {
-      await storage.removeCredits(userId, credits, {
-        source: "kiwify",
-        offerId,
-        purchaseId,
-        reason: data.status,
-      });
+      await storage.deductCredits(userId, credits);
 
       return {
         success: true,
@@ -173,7 +175,7 @@ export async function deductCredits(
   reason?: string
 ): Promise<PurchaseResult> {
   try {
-    await storage.removeCredits(userId, amount, { source: "manual", reason });
+    await storage.deductCredits(userId, amount);
     return {
       success: true,
       message: "Créditos removidos com sucesso",
