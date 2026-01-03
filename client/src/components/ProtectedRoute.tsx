@@ -1,68 +1,66 @@
-import { ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { getAuthHeader, isAuthenticated } from "@/lib/auth";
 import { useLocation } from "wouter";
-import { isAuthenticated, getAuthHeader } from "@/lib/auth";
-import axios from "axios";
 
-interface ProtectedRouteProps {
-  children: ReactNode;
-}
+export function withMembershipCheck<P extends object>(
+  Component: React.ComponentType<P>
+) {
+  return function ProtectedComponent(props: P) {
+    const [, setLocation] = useLocation();
+    const [hasMembership, setHasMembership] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const [, setLocation] = useLocation();
-  const [allowed, setAllowed] = useState<boolean | null>(null);
+    useEffect(() => {
+      if (!isAuthenticated()) {
+        setLocation("/login");
+        return;
+      }
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      setLocation("/login");
-      return;
-    }
+      checkMembership();
+    }, []);
 
-    const checkAccess = async () => {
+    const checkMembership = async () => {
       try {
-        const res = await axios.get("/api/auth/check-access", {
+        const response = await fetch("/api/auth/check-access", {
           headers: { ...getAuthHeader(), Accept: "application/json" },
-          validateStatus: (status) => [200, 304, 402].includes(status),
         });
 
-        if (res.status === 304) {
-          // Nada novo, mantém estado atual
-          return;
-        }
-
-        if (res.status === 402) {
-          setAllowed(false);
-          setLocation("/plans");
-          return;
-        }
-
-        const data = res.data;
-        if (data && typeof data === "object" && "hasAccess" in data) {
+        if (response.ok) {
+          const data = await response.json();
           if (data.hasAccess) {
-            setAllowed(true);
+            console.log("✅ Acesso liberado");
+            setHasMembership(true);
           } else {
-            setAllowed(false);
+            console.log("❌ Sem acesso, redirecionando para planos");
             setLocation("/plans");
           }
+        } else if (response.status === 402) {
+          console.log("❌ Créditos insuficientes, redirecionando para planos");
+          setLocation("/plans");
         } else {
-          console.warn("Resposta inesperada da API:", data);
-          setAllowed(true); // ⚠️ libera acesso para não travar
+          console.warn("Resposta inesperada da API:", response.status);
+          setHasMembership(true); // ⚠️ libera acesso para não travar
         }
-      } catch (err: any) {
-        console.error("Erro ao verificar acesso:", err);
-        setAllowed(true); // ⚠️ libera acesso em caso de erro
+      } catch (error) {
+        console.error("Erro ao verificar acesso:", error);
+        setHasMembership(true); // ⚠️ libera acesso em caso de erro
+      } finally {
+        setLoading(false);
       }
     };
 
-    checkAccess();
-  }, [setLocation]);
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-muted-foreground">Verificando acesso...</div>
+        </div>
+      );
+    }
 
-  if (allowed === null) {
-    return <div>Carregando...</div>;
-  }
+    if (!hasMembership) {
+      return null;
+    }
 
-  if (!allowed) {
-    return <div>Sem acesso</div>;
-  }
-
-  return <>{children}</>;
+    return <Component {...props} />;
+  };
 }
