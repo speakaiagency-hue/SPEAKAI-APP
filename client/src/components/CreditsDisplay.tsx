@@ -1,4 +1,4 @@
-import { AlertCircle, Plus } from "lucide-react";
+import { Coins, AlertCircle, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getAuthHeader } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -16,60 +16,39 @@ export function CreditsDisplay({
   creditsAfterOperation,
   onBuyCredits,
 }: CreditsDisplayProps) {
-  const [credits, setCredits] = useState<number>(0); // inicia em 0 para evitar null
+  const [credits, setCredits] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCredits();
-    const interval = setInterval(fetchCredits, 10000); // atualiza a cada 10s
+    const interval = setInterval(fetchCredits, 2000); // atualiza a cada 2s
     return () => clearInterval(interval);
   }, [creditsAfterOperation]);
 
   const fetchCredits = async () => {
     try {
-      const response = await fetch("/api/auth/check-access", {
+      const response = await fetch("/api/credits/balance", {
         headers: { ...getAuthHeader(), Accept: "application/json" },
-        cache: "no-store",
       });
-
-      if (response.status === 304) {
-        // Nada novo, mantém créditos atuais
-        setLoading(false);
-        return;
-      }
-
-      if (!response.ok) {
-        console.error("Erro ao buscar créditos:", response.status);
-        setLoading(false);
-        return;
-      }
-
-      let data: any = null;
-      try {
-        data = await response.json();
-      } catch {
-        const text = await response.text();
-        console.error("Resposta inesperada da API de créditos (não é JSON):", text);
-        setLoading(false);
-        return;
-      }
-
-      if (data && typeof data === "object" && "credits" in data) {
-        setCredits(data.credits);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && typeof data === "object" && "credits" in data) {
+          setCredits(data.credits);
+        }
       } else {
-        console.error("Resposta inesperada da API de créditos:", data);
-        setCredits(0); // fallback
+        console.error("Erro ao buscar créditos:", response.status);
+        // mantém créditos atuais em vez de zerar
       }
     } catch (error) {
       console.error("Erro ao buscar créditos:", error);
-      setCredits(0); // fallback
+      // mantém créditos atuais em vez de zerar
     } finally {
       setLoading(false);
     }
   };
 
-  const hasEnoughCredits = credits >= operationCost;
-  const lowCredits = credits <= 50;
+  const hasEnoughCredits = credits !== null && credits >= operationCost;
+  const lowCredits = credits !== null && credits <= 50;
 
   return (
     <div className="space-y-2">
