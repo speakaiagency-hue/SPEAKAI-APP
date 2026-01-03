@@ -7,7 +7,7 @@ interface CreditsDisplayProps {
   operationCost: number;
   operationName: string;
   creditsAfterOperation?: number;
-  onBuyCredits?: () => void; // 🔑 abre o CreditsModal
+  onBuyCredits?: () => void;
 }
 
 export function CreditsDisplay({
@@ -16,7 +16,7 @@ export function CreditsDisplay({
   creditsAfterOperation,
   onBuyCredits,
 }: CreditsDisplayProps) {
-  const [credits, setCredits] = useState<number | null>(null);
+  const [credits, setCredits] = useState<number>(0); // inicia em 0 para evitar null
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -55,19 +55,21 @@ export function CreditsDisplay({
       }
 
       if (data && typeof data === "object" && "credits" in data) {
-        setCredits(data.credits); // backend deve retornar { credits, hasAccess }
+        setCredits(data.credits);
       } else {
         console.error("Resposta inesperada da API de créditos:", data);
+        setCredits(0); // fallback
       }
     } catch (error) {
       console.error("Erro ao buscar créditos:", error);
+      setCredits(0); // fallback
     } finally {
       setLoading(false);
     }
   };
 
-  const hasEnoughCredits = credits !== null && credits >= operationCost;
-  const lowCredits = credits !== null && credits <= 50; // alerta de saldo baixo
+  const hasEnoughCredits = credits >= operationCost;
+  const lowCredits = credits <= 50;
 
   return (
     <div className="space-y-2">
@@ -80,7 +82,7 @@ export function CreditsDisplay({
             loading ? "text-gray-500" : hasEnoughCredits ? "text-green-400" : "text-red-400"
           )}
         >
-          {loading ? "..." : credits ?? 0}
+          {loading ? "..." : credits}
         </div>
       </div>
 
