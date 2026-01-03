@@ -3,6 +3,7 @@ export interface User {
   email: string;
   name: string;
   status: "active" | "inactive";
+  avatar?: string; // 🔑 opcional para suportar avatar
 }
 
 export const getAuthToken = (): string | null => {
@@ -23,20 +24,32 @@ export const getUser = (): User | null => {
 };
 
 export const setAuthToken = (token: string, user: User) => {
-  localStorage.setItem("authToken", token);
-  localStorage.setItem("user", JSON.stringify(user));
+  try {
+    localStorage.setItem("authToken", token);
+    localStorage.setItem("user", JSON.stringify(user));
+  } catch (error) {
+    console.error("Erro ao salvar token:", error);
+  }
 };
 
 export const clearAuth = () => {
-  localStorage.removeItem("authToken");
-  localStorage.removeItem("user");
+  try {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+  } catch (error) {
+    console.error("Erro ao limpar auth:", error);
+  }
 };
 
 export const isAuthenticated = (): boolean => {
   return !!getAuthToken() && !!getUser();
 };
 
-export const getAuthHeader = () => {
+/**
+ * Retorna o header de autenticação para chamadas ao backend
+ * Exemplo: { Authorization: "Bearer <token>" }
+ */
+export const getAuthHeader = (): Record<string, string> => {
   const token = getAuthToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
