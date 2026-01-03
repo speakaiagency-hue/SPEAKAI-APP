@@ -21,18 +21,26 @@ export function CreditsDisplay({
 
   useEffect(() => {
     fetchCredits();
-    const interval = setInterval(fetchCredits, 5000); // atualiza a cada 5s
+    const interval = setInterval(fetchCredits, 10000); // atualiza a cada 10s
     return () => clearInterval(interval);
   }, [creditsAfterOperation]);
 
   const fetchCredits = async () => {
     try {
       const response = await fetch("/api/auth/check-access", {
-        headers: getAuthHeader(),
+        headers: { ...getAuthHeader(), Accept: "application/json" },
+        cache: "no-store",
       });
+
+      if (response.status === 304) {
+        // Nada novo, mantém créditos atuais
+        setLoading(false);
+        return;
+      }
 
       if (!response.ok) {
         console.error("Erro ao buscar créditos:", response.status);
+        setLoading(false);
         return;
       }
 
@@ -40,9 +48,9 @@ export function CreditsDisplay({
       try {
         data = await response.json();
       } catch {
-        // Se não for JSON, tenta ler como texto para logar
         const text = await response.text();
         console.error("Resposta inesperada da API de créditos (não é JSON):", text);
+        setLoading(false);
         return;
       }
 
