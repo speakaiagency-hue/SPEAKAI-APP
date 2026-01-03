@@ -1,5 +1,4 @@
 import { Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLocation } from "wouter";
 import { useState } from "react";
@@ -8,6 +7,7 @@ import { isAuthenticated } from "@/lib/auth";
 interface CreditsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreditsUpdated?: () => void; // 🔑 callback para atualizar saldo após compra
 }
 
 const creditPlans = [
@@ -19,7 +19,7 @@ const creditPlans = [
   { id: 6, credits: 2000, originalPrice: "R$ 1.147,00", price: "R$ 977,00", kiwifyLink: "https://kiwify.app/LFJ342L" },
 ];
 
-export function CreditsModal({ open, onOpenChange }: CreditsModalProps) {
+export function CreditsModal({ open, onOpenChange, onCreditsUpdated }: CreditsModalProps) {
   const [, setLocation] = useLocation();
   const [isLogged] = useState(() => isAuthenticated());
 
@@ -30,6 +30,12 @@ export function CreditsModal({ open, onOpenChange }: CreditsModalProps) {
       onOpenChange(false);
     } else {
       window.open(kiwifyLink, "_blank");
+
+      // 🔑 Após abrir a compra, fechamos o modal e avisamos o pai para atualizar saldo
+      onOpenChange(false);
+      if (onCreditsUpdated) {
+        onCreditsUpdated();
+      }
     }
   };
 
@@ -44,7 +50,9 @@ export function CreditsModal({ open, onOpenChange }: CreditsModalProps) {
             </DialogTitle>
             <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
           </div>
-          <p className="text-muted-foreground text-lg text-center">Transforme créditos em conteúdo inteligente com IA</p>
+          <p className="text-muted-foreground text-lg text-center">
+            Transforme créditos em conteúdo inteligente com IA
+          </p>
         </DialogHeader>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 py-8">
@@ -83,21 +91,10 @@ export function CreditsModal({ open, onOpenChange }: CreditsModalProps) {
         </div>
 
         <div className="border-t border-border/50 pt-6 text-center">
-          <p className="text-xs text-muted-foreground">✓ Liberdade total de uso • Suporte personalizado</p>
+          <p className="text-xs text-muted-foreground">
+            ✓ Liberdade total de uso • Suporte personalizado
+          </p>
         </div>
-
-        <style>{`
-          @keyframes slideInUp {
-            from {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-        `}</style>
       </DialogContent>
     </Dialog>
   );
