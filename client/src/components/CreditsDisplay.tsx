@@ -7,7 +7,7 @@ interface CreditsDisplayProps {
   operationCost: number;
   operationName: string;
   creditsAfterOperation?: number;
-  onBuyCredits?: () => void;
+  onBuyCredits?: () => void; // 🔑 nova prop para abrir o CreditsModal
 }
 
 export function CreditsDisplay({
@@ -21,38 +21,32 @@ export function CreditsDisplay({
 
   useEffect(() => {
     fetchCredits();
-    const interval = setInterval(fetchCredits, 2000); // atualiza a cada 2s
+    const interval = setInterval(fetchCredits, 2000);
     return () => clearInterval(interval);
   }, [creditsAfterOperation]);
 
   const fetchCredits = async () => {
     try {
       const response = await fetch("/api/credits/balance", {
-        headers: { ...getAuthHeader(), Accept: "application/json" },
+        headers: getAuthHeader(),
       });
       if (response.ok) {
         const data = await response.json();
-        if (data && typeof data === "object" && "credits" in data) {
-          setCredits(data.credits);
-        }
-      } else {
-        console.error("Erro ao buscar créditos:", response.status);
-        // mantém créditos atuais em vez de zerar
+        setCredits(data.credits);
       }
     } catch (error) {
-      console.error("Erro ao buscar créditos:", error);
-      // mantém créditos atuais em vez de zerar
+      console.error("Error fetching credits:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const hasEnoughCredits = credits !== null && credits >= operationCost;
-  const lowCredits = credits !== null && credits <= 50;
+  const lowCredits = credits !== null && credits <= 50; // 🔑 nova regra
 
   return (
     <div className="space-y-2">
-      {/* Saldo de Créditos */}
+      {/* Credits Balance - Minimalista */}
       <div className="flex items-center justify-between p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
         <span className="text-xs text-muted-foreground">Disponível</span>
         <div
@@ -65,7 +59,7 @@ export function CreditsDisplay({
         </div>
       </div>
 
-      {/* Custo da Operação */}
+      {/* Operation Cost - Minimalista */}
       <div
         className={cn(
           "flex items-center justify-between p-2 rounded text-xs",
@@ -76,7 +70,7 @@ export function CreditsDisplay({
         <span className="font-semibold">-{operationCost}</span>
       </div>
 
-      {/* Aviso de Créditos Baixos ou Insuficientes */}
+      {/* Low or Insufficient Credits Warning */}
       {!loading && (lowCredits || !hasEnoughCredits) && (
         <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 flex flex-col gap-2">
           <div className="flex items-start gap-2">
@@ -88,7 +82,7 @@ export function CreditsDisplay({
             </div>
           </div>
           <button
-            onClick={onBuyCredits}
+            onClick={onBuyCredits} // 🔑 abre o CreditsModal
             className="w-full h-8 text-xs bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-lg flex items-center justify-center gap-1 cursor-pointer"
             data-testid="button-buy-credits"
           >
@@ -98,7 +92,7 @@ export function CreditsDisplay({
         </div>
       )}
 
-      {/* Créditos Após Operação */}
+      {/* After Operation Credits */}
       {creditsAfterOperation !== undefined && (
         <div className="flex items-center justify-between p-2 rounded text-xs bg-green-500/5 text-green-400">
           <span>Após operação</span>
