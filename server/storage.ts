@@ -1,4 +1,4 @@
-import { type User, type InsertUser, users, userCredits } from "@shared/schema";
+import { type User, type InsertUser, users, userCredits, credit_transactions } from "@shared/schema";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { eq } from "drizzle-orm";
@@ -9,7 +9,7 @@ async function getDb() {
   if (!db) {
     const pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
     });
 
     db = drizzle(pool);
@@ -62,6 +62,10 @@ export interface IStorage {
   getUserCredits(userId: string): Promise<any>;
   addCredits(userId: string, amount: number): Promise<any>;
   deductCredits(userId: string, amount: number): Promise<any>;
+
+  // 👇 novos métodos para idempotência
+  hasProcessedPurchase(purchaseId: string): Promise<boolean>;
+  markPurchaseProcessed(purchaseId: string, userId?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -170,7 +174,6 @@ export class DatabaseStorage implements IStorage {
       let credits = await database.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
 
       if (!credits[0]) {
-        // Create new credit entry
         const result = await database
           .insert(userCredits)
           .values({
@@ -187,7 +190,6 @@ export class DatabaseStorage implements IStorage {
         };
       }
 
-      // Update existing
       const updated = credits[0].credits + amount;
       const result = await database
         .update(userCredits)
@@ -236,6 +238,38 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("deductCredits error:", error);
       return null;
+    }
+  }
+
+  async hasProcessedPurchase(purchaseId: string): Promise<boolean> {
+    try {
+      const database = await getDb();
+      const tx = await database
+        .select()
+        .from(credit_transactions)
+        .where(eq(credit_transactions.kiwify_purchase_id, purchaseId))
+        .limit(1);
+
+      return !!tx[0];
+    } catch (error) {
+      console.error("hasProcessedPurchase error:", error);
+      return false;
+    }
+  }
+
+    async markPurchaseProcessed(purchaseId: string, userId?: string): Promise<void> {
+    try {
+      const database = await getDb();
+      await database.insert(credit_transactions).values({
+        user_id: userId || "system",
+        type: "purchase",
+        amount: 0,
+        description: "Compra processada",
+        kiwify_purchase_id: purchaseId,
+        operation_type: "processed",
+      });
+    } catch (error) {
+      console.error("markPurchaseProcessed error:", error);
     }
   }
 }
