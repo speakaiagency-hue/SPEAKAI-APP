@@ -60,3 +60,6 @@ export function withAccessCheck<P extends object>(
     return <Component {...props} />;
   };
 }
+
+// ✅ Alias para compatibilidade
+export const withMembershipCheck = withAccessCheck;
