@@ -4,6 +4,7 @@ import {
   handleKiwifyPurchase,
   verifyKiwifySignature,
   KiwifyWebhookData,
+  deductCredits, // ✅ agora usamos também para consumo de créditos
 } from "../services/webhookService";
 import { authMiddleware } from "../middleware/authMiddleware";
 import type { IStorage } from "../storage";
@@ -20,11 +21,10 @@ export async function registerWebhookRoutes(app: Express, storage: IStorage, kiw
     async (req: Request, res: Response) => {
       try {
         const signature = req.headers["x-kiwify-signature"] as string;
-        const payload = (req as any).rawBody; // corpo cru para validação
+        const payload = (req as any).rawBody;
 
         console.log("📩 Webhook recebido da Kiwify (raw):", payload);
 
-        // Validação da assinatura
         if (signature && process.env.KIWIFY_WEBHOOK_SECRET) {
           const isValid = await verifyKiwifySignature(payload, signature);
           if (!isValid) {
@@ -33,11 +33,9 @@ export async function registerWebhookRoutes(app: Express, storage: IStorage, kiw
           }
         }
 
-        // Agora req.body já é objeto JSON parseado
         const body = req.body;
         console.log("📝 Webhook JSON parseado:", JSON.stringify(body, null, 2));
 
-        // Captura o e-mail do cliente
         const customerEmail =
           body.Customer?.email ||
           body.customer?.email ||
@@ -46,14 +44,12 @@ export async function registerWebhookRoutes(app: Express, storage: IStorage, kiw
           null;
 
         if (!customerEmail) {
-          console.error("❌ Webhook sem e-mail do cliente, não é possível adicionar créditos");
+          console.error("❌ Webhook sem e-mail do cliente");
           return res.status(400).json({ success: false, message: "E-mail do cliente ausente" });
         }
 
-        // Status do pagamento (deixa o service decidir se concede, segura ou revoga)
         const status = body.order_status || body.status || "pending";
 
-        // Monta os dados do webhook
         const webhookData: KiwifyWebhookData = {
           purchase_id: body.purchase_id || body.id || body.order_id || `purchase_${Date.now()}`,
           customer_email: customerEmail,
@@ -90,7 +86,6 @@ export async function registerWebhookRoutes(app: Express, storage: IStorage, kiw
 
         console.log("📦 Dados montados para handleKiwifyPurchase:", webhookData);
 
-        // Processa a compra
         const result = await handleKiwifyPurchase(webhookData, storage);
 
         if (result.success) {
@@ -136,6 +131,30 @@ export async function registerWebhookRoutes(app: Express, storage: IStorage, kiw
     } catch (error) {
       console.error("Erro ao buscar créditos:", error);
       res.json({ credits: 0 });
+    }
+  });
+
+  // 🔗 Endpoint para consumir créditos (uso do produto)
+  app.post("/api/credits/use", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { amount, reason } = req.body;
+
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ success: false, message: "Quantidade inválida de créditos" });
+      }
+
+      const result = await deductCredits(req.user!.id, amount, storage, reason);
+
+      if (result.success) {
+        console.log(`✅ Créditos deduzidos: ${amount} do usuário ${req.user!.id}`);
+        return res.status(200).json(result);
+      } else {
+        console.warn("⚠️ Falha ao deduzir créditos:", result.message);
+        return res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error("🔥 Erro ao deduzir créditos:", error);
+      res.status(500).json({ success: false, message: "Erro interno ao deduzir créditos" });
     }
   });
 }
