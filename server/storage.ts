@@ -257,11 +257,11 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-    async markPurchaseProcessed(purchaseId: string, userId?: string): Promise<void> {
+      async markPurchaseProcessed(purchaseId: string, userId?: string): Promise<void> {
     try {
       const database = await getDb();
       await database.insert(credit_transactions).values({
-        user_id: userId || "system",
+        user_id: userId || "system", // ✅ agora pode receber o userId real
         type: "purchase",
         amount: 0,
         description: "Compra processada",
