@@ -1,18 +1,18 @@
 // webhookService.ts
-import { IStorage } from "../storage";
+import type { IStorage } from "../storage";
 
 // Tipos dos dados recebidos do webhook da Kiwify
 export interface KiwifyWebhookData {
-  purchase_id: string;            // ID do pedido/compra
-  customer_email: string;         // email do comprador (chave do usuário)
+  purchase_id: string;
+  customer_email: string;
   customer_name?: string;
   product_name?: string;
-  product_id?: string;            // ID do produto principal (compartilhado entre ofertas)
-  product_offer_id?: string;      // ID único da oferta
-  checkout_link?: string;         // código do link de checkout (ex.: b25quAR)
-  value: number;                  // valor cobrado
-  status: "approved" | "pending" | "refunded" | "chargeback" | "canceled" | string;
-  raw?: unknown;                  // payload original, se quiser logar
+  product_id?: string;
+  product_offer_id?: string;
+  checkout_link?: string;
+  value: number;
+  status: string;
+  raw?: unknown;
 }
 
 // Resultado padronizado do processamento
@@ -27,7 +27,6 @@ export interface PurchaseResult {
 }
 
 // 🔗 Mapeamento de ofertas -> créditos
-// IDs extraídos dos seus arquivos CreditsModal.tsx e PlansModal.tsx
 const offerCredits: Record<string, number> = {
   // Créditos avulsos
   "b25quAR": 100,
@@ -43,9 +42,8 @@ const offerCredits: Record<string, number> = {
   "KFXdvJv": 5000,   // Premium
 };
 
-// Extrai o melhor identificador da oferta (preferindo checkout_link)
+// Extrai o melhor identificador da oferta
 function resolveOfferId(data: KiwifyWebhookData): string | undefined {
-  // checkout_link normalmente carrega o código curto do link (ex.: b25quAR)
   const id = (data.checkout_link || data.product_offer_id || "").trim();
   return id || undefined;
 }
@@ -54,16 +52,10 @@ function resolveOfferId(data: KiwifyWebhookData): string | undefined {
 function classifyStatus(status: string): "grant" | "hold" | "revoke" {
   const s = status.toLowerCase();
 
-  // Aprovado/pago: concede
   if (["approved", "paid", "completed", "captured"].includes(s)) return "grant";
-
-  // Pendente/espera: não concede ainda
   if (["pending", "awaiting_payment", "in_process"].includes(s)) return "hold";
-
-  // Reembolsos/chargeback/cancelados: revoga créditos
   if (["refunded", "chargeback", "canceled", "cancelled", "reversed"].includes(s)) return "revoke";
 
-  // Padrão conservador: segurar
   return "hold";
 }
 
@@ -99,7 +91,6 @@ export async function handleKiwifyPurchase(
   const action = classifyStatus(data.status);
 
   try {
-    // Idempotência básica: evita aplicar múltiplas vezes a mesma compra
     const alreadyProcessed = await storage.hasProcessedPurchase(purchaseId);
     if (alreadyProcessed && action === "grant") {
       return {
@@ -132,7 +123,6 @@ export async function handleKiwifyPurchase(
     }
 
     if (action === "revoke") {
-      // Remove créditos previamente concedidos para essa compra (se aplicável)
       await storage.removeCredits(userId, credits, {
         source: "kiwify",
         offerId,
@@ -150,7 +140,6 @@ export async function handleKiwifyPurchase(
       };
     }
 
-    // hold: não concede ainda
     return {
       success: true,
       message: "Status pendente — aguardando confirmação de pagamento",
@@ -171,8 +160,28 @@ export async function handleKiwifyPurchase(
   }
 }
 
-// Exemplo de verificação de assinatura (placeholder)
+// 🔐 Verificação de assinatura (placeholder)
 export async function verifyKiwifySignature(payload: string, signature?: string): Promise<boolean> {
-  // Implemente conforme sua secret/estratégia (HMAC, etc.)
   return true;
+}
+
+// 🔽 Wrapper para compatibilidade antiga
+export async function deductCredits(
+  userId: string,
+  amount: number,
+  storage: IStorage,
+  reason?: string
+): Promise<PurchaseResult> {
+  try {
+    await storage.removeCredits(userId, amount, { source: "manual", reason });
+    return {
+      success: true,
+      message: "Créditos removidos com sucesso",
+      creditsRemoved: amount,
+      userId,
+    };
+  } catch (err) {
+    console.error("Erro ao remover créditos:", err);
+    return { success: false, message: "Erro ao remover créditos", userId };
+  }
 }
