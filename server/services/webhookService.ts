@@ -1,137 +1,178 @@
-import crypto from "crypto";
-import { storage } from "../storage";
+// webhookService.ts
+import { IStorage } from "../storage";
 
+// Tipos dos dados recebidos do webhook da Kiwify
 export interface KiwifyWebhookData {
-  purchase_id: string;
-  customer_email: string;
-  customer_name: string;
-  product_name: string;
-  product_id: string;
-  value: number;
-  status: string;
+  purchase_id: string;            // ID do pedido/compra
+  customer_email: string;         // email do comprador (chave do usuário)
+  customer_name?: string;
+  product_name?: string;
+  product_id?: string;            // ID do produto principal (compartilhado entre ofertas)
+  product_offer_id?: string;      // ID único da oferta
+  checkout_link?: string;         // código do link de checkout (ex.: b25quAR)
+  value: number;                  // valor cobrado
+  status: "approved" | "pending" | "refunded" | "chargeback" | "canceled" | string;
+  raw?: unknown;                  // payload original, se quiser logar
 }
 
-const CREDIT_COSTS = {
-  chat: 1,
-  image: 7,
-  prompt: 0,
-  video: 40,
-};
+// Resultado padronizado do processamento
+export interface PurchaseResult {
+  success: boolean;
+  message: string;
+  creditsAdded?: number;
+  creditsRemoved?: number;
+  userId?: string;
+  offerId?: string;
+  purchaseId?: string;
+}
 
-// Mapeamento de produtos/plano → créditos fixos
-const CREDIT_MAP: Record<string, number> = {
+// 🔗 Mapeamento de ofertas -> créditos
+// IDs extraídos dos seus arquivos CreditsModal.tsx e PlansModal.tsx
+const offerCredits: Record<string, number> = {
+  // Créditos avulsos
+  "b25quAR": 100,
+  "OHJeYkb": 200,
+  "Ypa4tzr": 300,
+  "iRNfqB9": 500,
+  "zbugEDV": 1000,
+  "LFJ342L": 2000,
+
   // Planos
-  basico: 500,
-  pro: 1500,      // corrigido
-  premium: 5000,  // corrigido
-
-  // Pacotes de créditos
-  "100_creditos": 100,
-  "200_creditos": 200,
-  "300_creditos": 300,
-  "500_creditos": 500,
-  "1000_creditos": 1000,
-  "2000_creditos": 2000,
-
-  // Fallback para testes da Kiwify
-  produto: 50,
-  "0": 50,
+  "jM0siPY": 500,    // Básico
+  "q0rFdNB": 1500,   // Pro
+  "KFXdvJv": 5000,   // Premium
 };
 
-export async function verifyKiwifySignature(payload: string, signature: string): Promise<boolean> {
-  const secret = process.env.KIWIFY_WEBHOOK_SECRET || "";
-  if (!secret) return true;
-
-  const hmac = crypto.createHmac("sha256", secret);
-  hmac.update(payload);
-  const hash = hmac.digest("hex");
-  return hash === signature;
+// Extrai o melhor identificador da oferta (preferindo checkout_link)
+function resolveOfferId(data: KiwifyWebhookData): string | undefined {
+  // checkout_link normalmente carrega o código curto do link (ex.: b25quAR)
+  const id = (data.checkout_link || data.product_offer_id || "").trim();
+  return id || undefined;
 }
 
-export async function handleKiwifyPurchase(data: KiwifyWebhookData) {
-  try {
-    // Aceitar múltiplos status válidos
-    if (!["approved", "paid", "completed"].includes(data.status)) {
-      return { success: false, message: `Compra com status inválido: ${data.status}` };
-    }
+// Decide se o status deve conceder, reter ou remover créditos
+function classifyStatus(status: string): "grant" | "hold" | "revoke" {
+  const s = status.toLowerCase();
 
-    // Garantir que temos e-mail válido
-    if (!data.customer_email) {
-      return { success: false, message: "E-mail do cliente ausente" };
-    }
+  // Aprovado/pago: concede
+  if (["approved", "paid", "completed", "captured"].includes(s)) return "grant";
 
-    // Normaliza chave do produto (usa ID ou nome)
-    const productKey =
-      data.product_id?.toLowerCase() ||
-      data.product_name?.toLowerCase().replace(/\s+/g, "_");
+  // Pendente/espera: não concede ainda
+  if (["pending", "awaiting_payment", "in_process"].includes(s)) return "hold";
 
-    // Busca créditos fixos no mapa
-    const creditsToAdd = CREDIT_MAP[productKey] ?? 0;
+  // Reembolsos/chargeback/cancelados: revoga créditos
+  if (["refunded", "chargeback", "canceled", "cancelled", "reversed"].includes(s)) return "revoke";
 
-    if (creditsToAdd === 0) {
-      console.warn(`⚠️ Produto não reconhecido: ${productKey}`);
-      return { success: false, message: "Produto não reconhecido" };
-    }
+  // Padrão conservador: segurar
+  return "hold";
+}
 
-    // Procura usuário pelo e-mail
-    let user = await storage.getUserByEmail(data.customer_email);
-    if (!user) {
-      // Cria novo usuário
-      user = await storage.createUser({
-        username: data.customer_email,
-        password: "kiwify_" + Date.now(),
-      });
+// Serviço principal de processamento de compra
+export async function handleKiwifyPurchase(
+  data: KiwifyWebhookData,
+  storage: IStorage
+): Promise<PurchaseResult> {
+  const offerId = resolveOfferId(data);
+  const userId = data.customer_email;
+  const purchaseId = data.purchase_id;
 
-      if (user) {
-        await storage.updateUserProfile(user.id, {
-          email: data.customer_email,
-          name: data.customer_name || "Cliente Kiwify",
-        });
-      }
-    }
-
-    if (!user) {
-      return { success: false, message: "Erro ao criar usuário" };
-    }
-
-    // Adiciona créditos
-    await storage.addCredits(user.id, creditsToAdd);
-
-    console.log(`✅ Kiwify purchase processed: ${creditsToAdd} créditos adicionados para usuário ${user.id}`);
-
+  if (!offerId) {
     return {
-      success: true,
-      message: `${creditsToAdd} créditos adicionados`,
-      userId: user.id,
-      creditsAdded: creditsToAdd,
+      success: false,
+      message: "OfferId ausente: checkout_link ou product_offer_id não enviados",
+      userId,
+      purchaseId,
     };
-  } catch (error) {
-    console.error("🔥 Erro ao processar compra:", error);
-    return { success: false, message: "Erro ao processar compra" };
   }
-}
 
-export async function deductCredits(userId: string, operationType: "chat" | "image" | "prompt" | "video") {
+  const credits = offerCredits[offerId] || 0;
+  if (credits <= 0) {
+    return {
+      success: false,
+      message: `Oferta não reconhecida: ${offerId}`,
+      userId,
+      offerId,
+      purchaseId,
+    };
+  }
+
+  const action = classifyStatus(data.status);
+
   try {
-    const cost = CREDIT_COSTS[operationType];
-    const result = await storage.deductCredits(userId, cost);
-
-    if (!result) {
+    // Idempotência básica: evita aplicar múltiplas vezes a mesma compra
+    const alreadyProcessed = await storage.hasProcessedPurchase(purchaseId);
+    if (alreadyProcessed && action === "grant") {
       return {
-        success: false,
-        error: "insufficient_credits",
-        message: `Você precisa de ${cost} créditos para usar ${operationType}. Compre mais créditos.`,
+        success: true,
+        message: "Compra já processada anteriormente (idempotente)",
+        creditsAdded: 0,
+        userId,
+        offerId,
+        purchaseId,
       };
     }
 
-    console.log(`✅ Deduzidos ${cost} créditos para ${operationType}. Restante: ${result.credits}`);
+    if (action === "grant") {
+      await storage.addCredits(userId, credits, {
+        source: "kiwify",
+        offerId,
+        purchaseId,
+        value: data.value,
+      });
+      await storage.markPurchaseProcessed(purchaseId);
 
+      return {
+        success: true,
+        message: "Créditos adicionados com sucesso",
+        creditsAdded: credits,
+        userId,
+        offerId,
+        purchaseId,
+      };
+    }
+
+    if (action === "revoke") {
+      // Remove créditos previamente concedidos para essa compra (se aplicável)
+      await storage.removeCredits(userId, credits, {
+        source: "kiwify",
+        offerId,
+        purchaseId,
+        reason: data.status,
+      });
+
+      return {
+        success: true,
+        message: "Créditos removidos devido a reembolso/chargeback/cancelamento",
+        creditsRemoved: credits,
+        userId,
+        offerId,
+        purchaseId,
+      };
+    }
+
+    // hold: não concede ainda
     return {
       success: true,
-      creditsRemaining: result.credits,
+      message: "Status pendente — aguardando confirmação de pagamento",
+      creditsAdded: 0,
+      userId,
+      offerId,
+      purchaseId,
     };
-  } catch (error) {
-    console.error("🔥 Erro ao descontar créditos:", error);
-    return { success: false, message: "Erro ao descontar créditos" };
+  } catch (err) {
+    console.error("Erro ao processar compra:", err);
+    return {
+      success: false,
+      message: "Erro interno ao processar compra",
+      userId,
+      offerId,
+      purchaseId,
+    };
   }
+}
+
+// Exemplo de verificação de assinatura (placeholder)
+export async function verifyKiwifySignature(payload: string, signature?: string): Promise<boolean> {
+  // Implemente conforme sua secret/estratégia (HMAC, etc.)
+  return true;
 }
