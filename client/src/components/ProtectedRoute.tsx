@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { isAuthenticated, getToken } from "@/lib/auth";
+import { isAuthenticated, getAuthHeader } from "@/lib/auth"; // ✅ trocado getToken por getAuthHeader
 import axios from "axios";
 
 interface ProtectedRouteProps {
@@ -21,9 +21,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     // Verifica créditos no backend
     const checkAccess = async () => {
       try {
-        const token = getToken();
         const res = await axios.get("/api/auth/check-access", {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: getAuthHeader(), // ✅ usa getAuthHeader
         });
 
         if (res.data.hasAccess) {
