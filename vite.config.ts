@@ -15,13 +15,7 @@ export default defineConfig({
     runtimeErrorOverlay(),
     tailwindcss(),
     metaImagesPlugin(),
-    // Plugins opcionais só em dev
-    ...(process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined
-      ? [
-          require("@replit/vite-plugin-cartographer").cartographer(),
-          require("@replit/vite-plugin-dev-banner").devBanner(),
-        ]
-      : []),
+    // ⚠️ removemos os plugins opcionais da Replit para evitar erro de build
   ],
   resolve: {
     alias: {
