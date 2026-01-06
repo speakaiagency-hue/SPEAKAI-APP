@@ -13,65 +13,68 @@ export interface GenerateVideoParams {
 
 export async function generateVideo(params: GenerateVideoParams) {
   const rotator = getGeminiKeyRotator();
-  
+
   return await rotator.executeWithRotation(async (apiKey) => {
     const ai = new GoogleGenAI({ apiKey });
 
-    const config: any = {
+    // Configuração base
+    const config: Record<string, any> = {
       numberOfVideos: 1,
       resolution: params.resolution || "720p",
       aspectRatio: params.aspectRatio || "16:9",
     };
 
-    const generateVideoPayload: any = {
+    // Payload inicial
+    const generateVideoPayload: Record<string, any> = {
       model: "veo-3.1-generate-preview",
-      config: config,
+      config,
       prompt: params.prompt,
     };
 
+    // Modo imagem → vídeo
     if (params.mode === "image-to-video" && params.imageBase64) {
       generateVideoPayload.image = {
         imageBytes: params.imageBase64,
         mimeType: params.imageMimeType || "image/jpeg",
       };
-    } else if (
-      params.mode === "reference-to-video" &&
-      params.referenceImages?.length
-    ) {
-      const referenceImagesPayload: any[] = [];
+    }
 
-      for (const img of params.referenceImages) {
-        referenceImagesPayload.push({
-          image: {
-            imageBytes: img.base64,
-            mimeType: img.mimeType || "image/jpeg",
-          },
-          referenceType: VideoGenerationReferenceType.ASSET,
-        });
-      }
+    // Modo referência → vídeo
+    if (params.mode === "reference-to-video" && params.referenceImages?.length) {
+      const referenceImagesPayload = params.referenceImages.map((img) => ({
+        image: {
+          imageBytes: img.base64,
+          mimeType: img.mimeType || "image/jpeg",
+        },
+        referenceType: VideoGenerationReferenceType.ASSET,
+      }));
 
       if (referenceImagesPayload.length > 0) {
         generateVideoPayload.config.referenceImages = referenceImagesPayload;
       }
     }
 
-    console.log("Submitting video generation request...");
+    console.log("📤 Submetendo requisição de geração de vídeo...");
     let operation = await ai.models.generateVideos(generateVideoPayload);
 
+    // Polling até terminar
     while (!operation.done) {
       await new Promise((resolve) => setTimeout(resolve, 10000));
-      console.log("Generating video...");
+      console.log("⏳ Gerando vídeo...");
       operation = await ai.operations.getVideosOperation({ operation });
     }
 
+    // Tratamento da resposta
     if (operation?.response) {
       const videos = operation.response.generatedVideos;
 
       if (!videos || videos.length === 0) {
-        if (operation.error) {
-          throw new Error(typeof operation.error === 'string' ? operation.error : JSON.stringify(operation.error));
-        }
-        throw new Error("Nenhum vídeo foi gerado");
+        const errorMsg =
+          operation.error &&
+          (typeof operation.error === "string"
+            ? operation.error
+            : JSON.stringify(operation.error));
+        throw new Error(errorMsg || "Nenhum vídeo foi gerado");
       }
 
       const firstVideo = videos[0];
@@ -82,8 +85,8 @@ export async function generateVideo(params: GenerateVideoParams) {
       let uriToParse = firstVideo.video.uri;
       try {
         uriToParse = decodeURIComponent(firstVideo.video.uri);
-      } catch (e) {
-        console.warn("Could not decode video URI");
+      } catch {
+        console.warn("⚠️ Não foi possível decodificar a URI do vídeo");
       }
 
       const url = new URL(uriToParse);
@@ -94,11 +97,14 @@ export async function generateVideo(params: GenerateVideoParams) {
         videoUrl: finalUrl,
         uri: finalUrl,
       };
-    } else {
-      if (operation.error) {
-        throw new Error(typeof operation.error === 'string' ? operation.error : JSON.stringify(operation.error));
-      }
-      throw new Error("Nenhum vídeo foi gerado");
     }
+
+    // Caso erro
+    const errorMsg =
+      operation.error &&
+      (typeof operation.error === "string"
+        ? operation.error
+        : JSON.stringify(operation.error));
+    throw new Error(errorMsg || "Nenhum vídeo foi gerado");
   });
 }
